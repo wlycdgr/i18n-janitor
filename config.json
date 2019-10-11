@@ -2,7 +2,7 @@
   "target_projects": ["extension"],
 
   "projects": {
-    "EXAMPLE": {
+    "DO_NOT_MODIFY_OR_REMOVE_THIS_EXAMPLE": {
       "root": "path to the target project root, relative to the root of this project",
       "default_locale_file": "path to the default locale file, relative to the target project root",
       "files_that_may_use_i18n_tokens": [
