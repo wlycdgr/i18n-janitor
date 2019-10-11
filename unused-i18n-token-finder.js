@@ -25,7 +25,6 @@ const jsonfile = require('jsonfile');
 
 // Constants
 const CONFIG_FILE = 'config.json';
-const DEFAULT_LOCALE_TOKENS_FILE = '/_locales/en/messages.json';
 const RESULTS_DIR = './results';
 const UNUSED_TOKENS_RESULTS_FILENAME = 'unused_tokens.txt';
 
@@ -71,25 +70,29 @@ function findUnusedTokens(tokens, filepaths) {
  * @param [string Array] filepaths							The matching filepaths
  * @returns [string Array] filepaths						The matching filepaths
  */
-function getFilepaths(whereToLookAndForWhatExtensions, filepaths = []) {
-	const target = whereToLookAndForWhatExtensions;
+function loadFilepaths(root, locationsAndExtensions, filepaths = []) {
+	const target = locationsAndExtensions;
 
 	if (Array.isArray(target)) {
-		target.forEach((t) => {
-			filepaths = getFilepaths(t, filepaths);
+		locationsAndExtensions.forEach((locationAndExtensions) => {
+			filepaths = loadFilepaths(root, locationAndExtensions, filepaths);
 		});
 	} else {
-		const dirEntries = fs.readdirSync(target.dir, { withFileTypes: true });
+		const dirEntries = fs.readdirSync(`${root}/${target.dir}`, { withFileTypes: true });
 
 		dirEntries.forEach((dirEntry) => {
 			if (dirEntry.isDirectory()) {
-				filepaths = getFilepaths({
-					dir: `${target.dir}/${dirEntry.name}`,
-					extensions: target.extensions
-				}, filepaths);
+				filepaths = loadFilepaths(
+					root,
+					{
+						dir: `${target.dir}/${dirEntry.name}`,
+						extensions: target.extensions
+					},
+					filepaths
+				);
 			} else if (dirEntry.isFile()) {
 				if (target.extensions.some(extension => dirEntry.name.endsWith(extension))) {
-					filepaths.push(`${target.dir}/${dirEntry.name}`);
+					filepaths.push(`${root}/${target.dir}/${dirEntry.name}`);
 				}
 			}
 		});
@@ -98,73 +101,70 @@ function getFilepaths(whereToLookAndForWhatExtensions, filepaths = []) {
 	return filepaths;
 }
 
-function getJSONKeys(filepath) {
-	const json = jsonfile.readFileSync(filepath);
-	return Object.keys(json);
+function loadTokens(project) {
+	const messages = jsonfile.readFileSync(`${project.root}/${project.default_locale_filepath}`, {throws: false});
+
+	if (messages === null) {
+		bail(`The default locale json file for the '${project.name}' project is missing or invalid.\nCheck the project's 'root' and 'default_locale_filepath' values and the file's syntax.`);
+	}
+
+	return Object.keys(messages);
 }
 
-
-function loadTargetProjectsConfig(configFilePath) {
-	return new Promise(resolve => {
-		const configJson = jsonfile.readFileSync(configFilePath);
-		resolve(configJson);
-	});
-}
-
-function findUnused(targets) {
-	console.log(targets);
-}
-
-function parseConfig(jsonConfig) {
-	console.log(jsonConfig);
-}
-
-function loadAndParseConfig(configFile) {
-	const jsonConfig = jsonfile.readFileSync(`${process.cwd()}/${configFile}`, {throws: false});
-
-	if (jsonConfig === null) {
+function validateConfig(configJson) {
+	if (configJson === null) {
 		bail(`The config file at\n  ${process.cwd()}/${configFile}\nis missing or invalid.\nPlease check config file location, name, and syntax.`);
 	}
 
 	if (
-		!Array.isArray(jsonConfig["target_projects"])
-		|| jsonConfig["target_projects"].length === 0
+		!Array.isArray(configJson["target_projects"])
+		|| configJson["target_projects"].length === 0
 	) {
 		bail("The 'target_projects' array in the config file is undefined or empty.\nFill it with the names of the projects you want to process and try again.");
 	}
 
-	if (jsonConfig["projects"] === undefined) {
+	if (configJson["projects"] === undefined) {
 		bail("The 'projects' object in the config file is undefined.\nFill it with the details of the projects you want to process and try again.")
 	}
 
-	const targets = [];
-	jsonConfig["target_projects"].forEach((name) => {
-		const targetProject = jsonConfig["projects"][name];
-		if (targetProject === undefined) {
+	configJson["target_projects"].forEach((name) => {
+		if (configJson["projects"][name] === undefined) {
 			bail(`The '${name}' target project is not defined in the config file.\nDefine it and try again.`);
 		}
-		targets.push(targetProject);
+	})
+}
+
+function getProjects(configFile) {
+	const configJson = jsonfile.readFileSync(`${process.cwd()}/${configFile}`, {throws: false});
+
+	validateConfig(configJson);
+
+	const projects = [];
+	configJson["target_projects"].forEach((projectName) => {
+		const targetProject = configJson["projects"][projectName];
+		targetProject.name = projectName;
+		projects.push(targetProject);
 	});
 
-	return targets;
+	return projects;
 }
 
 function bail(message) {
-	console.log(`\n${message}`);
-	console.log("\nExiting...");
+	console.error(`\n${message}`);
+	console.error("\nExiting...");
 
 	process.exit();
 }
 
-//loadConfig(CONFIG_FILE);
-const targets = loadAndParseConfig(CONFIG_FILE);
-// const tokens = getTokens(targets);
-// const tokens = getTokens(targets);
-// const filepaths = getFilepaths(targets);
-// const unusedTokens = findUnusedTokens(tokens, filepaths);
-// writeResultsToDisk(unusedTokens);
-//
-//
+const projects = getProjects(CONFIG_FILE);
+projects.forEach((project) => {
+	const tokens = loadTokens(project);
+	const filepaths = loadFilepaths(project.root, project.search_filepaths);
+	const unusedTokens = findUnusedTokens(tokens, filepaths);
+	console.log(unusedTokens);
+	//writeResultsToDisk(project.name, unusedTokens);
+});
+
 // console.log('\nPLEASE NOTE:');
 // console.log('Since some i18n tokens are generated dynamically,')
 // console.log('and since some others are formatted in a non-standard way,');

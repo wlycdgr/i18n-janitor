@@ -4,7 +4,7 @@
   "projects": {
     "DO_NOT_MODIFY_OR_REMOVE_THIS_EXAMPLE": {
       "root": "path to the target project root, relative to the root of this project",
-      "default_locale_file": "path to the default locale file, relative to the target project root",
+      "default_locale_filepath": "path to the default locale file, relative to the target project root",
       "files_that_may_use_i18n_tokens": [
         {
           "dir": "directory to recursively search for files; path relative to the target project root",
@@ -20,8 +20,8 @@
     },
 
     "extension": {
-      "root": "../extension",
-      "default_locale_file": "_locales/en/messages.json",
+      "root": "../extension/",
+      "default_locale_filepath": "_locales/en/messages.json",
       "search_filepaths": [
         {
           "dir": "app",
