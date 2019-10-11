@@ -1,0 +1,42 @@
+{
+  "target_projects": ["extension"],
+
+  "projects": {
+    "EXAMPLE": {
+      "root": "path to the target project root, relative to the root of this project",
+      "default_locale_file": "path to the default locale file, relative to the target project root",
+      "files_that_may_use_i18n_tokens": [
+        {
+          "dir": "directory to recursively search for files; path relative to the target project root",
+          "extensions": [
+            "file",
+            "extensions",
+            "we",
+            "care",
+            "about"
+          ]
+        }
+      ]
+    },
+
+    "extension": {
+      "root": "../extension",
+      "default_locale_file": "_locales/en/messages.json",
+      "search_filepaths": [
+        {
+          "dir": "app",
+          "extensions": [
+            ".jsx",
+            ".js"
+          ]
+        },
+        {
+          "dir": "src",
+          "extensions": [
+            ".js"
+          ]
+        }
+      ]
+    }
+  }
+}
