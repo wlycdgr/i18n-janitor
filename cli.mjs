@@ -1,3 +1,5 @@
+#!/usr/bin/env node --experimental-modules
+
 console.log("");
 console.log("*** i18n-tools ***");
 console.log("f Find unused tokens");

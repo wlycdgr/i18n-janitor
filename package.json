@@ -1,4 +1,6 @@
 {
+  "name": "i18n-tools",
+  "bin": "./cli.mjs",
   "dependencies": {
     "jsonfile": "^5.0.0"
   }
