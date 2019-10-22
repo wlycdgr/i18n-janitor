@@ -16,25 +16,23 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0
  */
 
-console.time('unused-i18n-token-finder');
-
-const fs = require('fs');
-const jsonfile = require('jsonfile');
+import fs from 'fs';
+import jsonfile from 'jsonfile';
 
 // Constants
 const CONFIG_FILE = 'config.json';
 const RESULTS_DIR = './results';
 const RESULTS_FILENAME = 'unused_tokens.txt';
 
-function makeDirIfNeeded(path) {
+function _makeDirIfNeeded(path) {
 	if (!fs.existsSync(path)) { fs.mkdirSync(path); }
 }
 
-function writeResultsToDisk(project, unusedTokens) {
+function _writeResultsToDisk(project, unusedTokens) {
 	const filepath = `${RESULTS_DIR}/${project}/${RESULTS_FILENAME}`;
 
-	makeDirIfNeeded(RESULTS_DIR);
-	makeDirIfNeeded(`${RESULTS_DIR}/${project}`);
+	_makeDirIfNeeded(RESULTS_DIR);
+	_makeDirIfNeeded(`${RESULTS_DIR}/${project}`);
 
 	fs.writeFileSync(
 		filepath,
@@ -42,7 +40,7 @@ function writeResultsToDisk(project, unusedTokens) {
 	);
 }
 
-function findUnusedTokens(tokens, filepaths) {
+function _findUnusedTokens(tokens, filepaths) {
 	tokens = tokens.map(token => ({ value: token, isUsed: false }));
 
 	filepaths.forEach((filepath) => {
@@ -71,19 +69,19 @@ function findUnusedTokens(tokens, filepaths) {
  * @param [string Array] filepaths							The matching filepaths
  * @returns [string Array] filepaths						The matching filepaths
  */
-function loadFilepaths(root, locationsAndExtensions, filepaths = []) {
+function _loadFilepaths(root, locationsAndExtensions, filepaths = []) {
 	const target = locationsAndExtensions;
 
 	if (Array.isArray(target)) {
 		locationsAndExtensions.forEach((locationAndExtensions) => {
-			filepaths = loadFilepaths(root, locationAndExtensions, filepaths);
+			filepaths = _loadFilepaths(root, locationAndExtensions, filepaths);
 		});
 	} else {
 		const dirEntries = fs.readdirSync(`${root}/${target.dir}`, { withFileTypes: true });
 
 		dirEntries.forEach((dirEntry) => {
 			if (dirEntry.isDirectory()) {
-				filepaths = loadFilepaths(
+				filepaths = _loadFilepaths(
 					root,
 					{
 						dir: `${target.dir}/${dirEntry.name}`,
@@ -102,43 +100,43 @@ function loadFilepaths(root, locationsAndExtensions, filepaths = []) {
 	return filepaths;
 }
 
-function loadTokens(project) {
+function _loadTokens(project) {
 	const messages = jsonfile.readFileSync(`${project.root}/${project.default_locale_filepath}`, {throws: false});
 
 	if (messages === null) {
-		bail(`The default locale json file for the '${project.name}' project is missing or invalid.\nCheck the project's 'root' and 'default_locale_filepath' values and the file's syntax.`);
+		_bail(`The default locale json file for the '${project.name}' project is missing or invalid.\nCheck the project's 'root' and 'default_locale_filepath' values and the file's syntax.`);
 	}
 
 	return Object.keys(messages);
 }
 
-function validateConfig(configJson) {
+function _validateConfig(configJson) {
 	if (configJson === null) {
-		bail(`The config file at\n  ${process.cwd()}/${configFile}\nis missing or invalid.\nPlease check config file location, name, and syntax.`);
+		_bail(`The config file at\n  ${process.cwd()}/${configFile}\nis missing or invalid.\nPlease check config file location, name, and syntax.`);
 	}
 
 	if (
 		!Array.isArray(configJson["target_projects"])
 		|| configJson["target_projects"].length === 0
 	) {
-		bail("The 'target_projects' array in the config file is undefined or empty.\nFill it with the names of the projects you want to process and try again.");
+		_bail("The 'target_projects' array in the config file is undefined or empty.\nFill it with the names of the projects you want to process and try again.");
 	}
 
 	if (configJson["projects"] === undefined) {
-		bail("The 'projects' object in the config file is undefined.\nFill it with the details of the projects you want to process and try again.")
+		_bail("The 'projects' object in the config file is undefined.\nFill it with the details of the projects you want to process and try again.")
 	}
 
 	configJson["target_projects"].forEach((name) => {
 		if (configJson["projects"][name] === undefined) {
-			bail(`The '${name}' target project is not defined in the config file.\nDefine it and try again.`);
+			_bail(`The '${name}' target project is not defined in the config file.\nDefine it and try again.`);
 		}
 	})
 }
 
-function getProjects(configFile) {
+function _getProjects(configFile) {
 	const configJson = jsonfile.readFileSync(`${process.cwd()}/${configFile}`, {throws: false});
 
-	validateConfig(configJson);
+	_validateConfig(configJson);
 
 	const projects = [];
 	configJson["target_projects"].forEach((projectName) => {
@@ -150,26 +148,30 @@ function getProjects(configFile) {
 	return projects;
 }
 
-function bail(message) {
+function _bail(message) {
 	console.error(`\n${message}`);
 	console.error("\nExiting...");
 
 	process.exit();
 }
 
-const projects = getProjects(CONFIG_FILE);
-projects.forEach((project) => {
-	const tokens = loadTokens(project);
-	const filepaths = loadFilepaths(project.root, project.search_filepaths);
-	const unusedTokens = findUnusedTokens(tokens, filepaths);
-	writeResultsToDisk(project.name, unusedTokens);
-});
+export function findUnusedTokens() {
+	console.time('unused-i18n-token-finder');
 
-console.log('\nPLEASE NOTE:');
-console.log('Since some i18n tokens are generated dynamically,')
-console.log('and since some others are formatted in a non-standard way,');
-console.log('the lists generated by this script should ALWAYS');
-console.log('be verified manually before removing any of the tokens in them.');
-console.log('\nThe results are in ./results/[project]/unused_tokens.txt\n');
+	const projects = _getProjects(CONFIG_FILE);
+	projects.forEach((project) => {
+		const tokens = _loadTokens(project);
+		const filepaths = _loadFilepaths(project.root, project.search_filepaths);
+		const unusedTokens = _findUnusedTokens(tokens, filepaths);
+		_writeResultsToDisk(project.name, unusedTokens);
+	});
 
-console.timeEnd('unused-i18n-token-finder');
+	console.log('\nPLEASE NOTE:');
+	console.log('Since some i18n tokens are generated dynamically,')
+	console.log('and since some others are formatted in a non-standard way,');
+	console.log('the lists generated by this script should ALWAYS');
+	console.log('be verified manually before removing any of the tokens in them.');
+	console.log('\nThe results are in ./results/[project]/unused_tokens.txt\n');
+
+	console.timeEnd('unused-i18n-token-finder');
+}
