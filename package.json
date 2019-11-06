@@ -1,5 +1,6 @@
 {
-  "name": "i18n-tools",
+  "name": "i18n-janitor",
+  "description": "i18n-janitor is a CLI utility that finds and removes unused localization tokens",
   "bin": "./cli.mjs",
   "dependencies": {
     "jsonfile": "^5.0.0"
