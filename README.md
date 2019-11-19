@@ -1,5 +1,7 @@
 # i18n-janitor
 
+### THIS TOOL IS NOT READY FOR USE - THIS WARNING WILL BE REMOVED ONCE IT IS
+
 A CLI tool for identifying and removing unused localization tokens in browser extensions that use the Chrome i18n localization file format.
 Created to help maintain the Ghostery browser extension.
 
