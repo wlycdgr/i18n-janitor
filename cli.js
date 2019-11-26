@@ -18,201 +18,216 @@
  */
 
 const fs = require('fs');
-const jsonfile = require('jsonfile');
+// const jsonfile = require('jsonfile');
+//
+// // Constants
+// const CONFIG_FILE = 'config.json';
+// const RESULTS_DIR = './results';
+// const RESULTS_FILENAME = 'unused_tokens.txt';
+//
+// function _makeDirIfNeeded(path) {
+//     if (!fs.existsSync(path)) { fs.mkdirSync(path); }
+// }
+//
+// function _writeResultsToDisk(project, unusedTokens) {
+//     const filepath = `${RESULTS_DIR}/${project}/${RESULTS_FILENAME}`;
+//
+//     _makeDirIfNeeded(RESULTS_DIR);
+//     _makeDirIfNeeded(`${RESULTS_DIR}/${project}`);
+//
+//     fs.writeFileSync(
+//         filepath,
+//         unusedTokens.join('\n')
+//     );
+// }
+//
+// function _findUnusedTokens(tokens, filepaths) {
+//     tokens = tokens.map(token => ({ value: token, isUsed: false }));
+//
+//     filepaths.forEach((filepath) => {
+//         const fileContents = fs.readFileSync(filepath, 'utf8');
+//         tokens.forEach((token) => {
+//             if (token.isUsed) { return; }
+//
+//             // THE TEST
+//             if (fileContents.includes(`t('${token.value}`)) {
+//                 token.isUsed = true;
+//             }
+//         });
+//     });
+//
+//     const unusedTokens =
+//         (tokens.filter(token => token.isUsed === false))
+//             .map(token => token.value);
+//
+//     return unusedTokens;
+// }
+//
+// /**
+//  * Recursively collect the filepaths of files that
+//  * satisfy the supplied extension and file system location conditions
+//  * @param [Array|object] whereToLookAndForWhatExtensions
+//  * @param [string Array] filepaths							The matching filepaths
+//  * @returns [string Array] filepaths						The matching filepaths
+//  */
+// function _loadFilepaths(root, locationsAndExtensions, filepaths = []) {
+//     const target = locationsAndExtensions;
+//
+//     if (Array.isArray(target)) {
+//         locationsAndExtensions.forEach((locationAndExtensions) => {
+//             filepaths = _loadFilepaths(root, locationAndExtensions, filepaths);
+//         });
+//     } else {
+//         const dirEntries = fs.readdirSync(`${root}/${target.dir}`, { withFileTypes: true });
+//
+//         dirEntries.forEach((dirEntry) => {
+//             if (dirEntry.isDirectory()) {
+//                 filepaths = _loadFilepaths(
+//                     root,
+//                     {
+//                         dir: `${target.dir}/${dirEntry.name}`,
+//                         extensions: target.extensions
+//                     },
+//                     filepaths
+//                 );
+//             } else if (dirEntry.isFile()) {
+//                 if (target.extensions.some(extension => dirEntry.name.endsWith(extension))) {
+//                     filepaths.push(`${root}/${target.dir}/${dirEntry.name}`);
+//                 }
+//             }
+//         });
+//     }
+//
+//     return filepaths;
+// }
+//
+// function _loadTokens(project) {
+//     const messages = jsonfile.readFileSync(`${project.root}/${project.default_locale_filepath}`, {throws: false});
+//
+//     if (messages === null) {
+//         _bail(`The default locale json file for the '${project.name}' project is missing or invalid.\nCheck the project's 'root' and 'default_locale_filepath' values and the file's syntax.`);
+//     }
+//
+//     return Object.keys(messages);
+// }
+//
+// function _validateConfig(configJson) {
+//     if (configJson === null) {
+//         _bail(`The config file at\n  ${process.cwd()}/${configFile}\nis missing or invalid.\nPlease check config file location, name, and syntax.`);
+//     }
+//
+//     if (
+//         !Array.isArray(configJson["target_projects"])
+//         || configJson["target_projects"].length === 0
+//     ) {
+//         _bail("The 'target_projects' array in the config file is undefined or empty.\nFill it with the names of the projects you want to process and try again.");
+//     }
+//
+//     if (configJson["projects"] === undefined) {
+//         _bail("The 'projects' object in the config file is undefined.\nFill it with the details of the projects you want to process and try again.")
+//     }
+//
+//     configJson["target_projects"].forEach((name) => {
+//         if (configJson["projects"][name] === undefined) {
+//             _bail(`The '${name}' target project is not defined in the config file.\nDefine it and try again.`);
+//         }
+//     })
+// }
+//
+// function _getProjects(configFile) {
+//     const configJson = jsonfile.readFileSync(`${process.cwd()}/${configFile}`, {throws: false});
+//
+//     _validateConfig(configJson);
+//
+//     const projects = [];
+//     configJson["target_projects"].forEach((projectName) => {
+//         const targetProject = configJson["projects"][projectName];
+//         targetProject.name = projectName;
+//         projects.push(targetProject);
+//     });
+//
+//     return projects;
+// }
+//
+// function _bail(message) {
+//     console.error(`\n${message}`);
+//     console.error("\nExiting...");
+//
+//     process.exit();
+// }
+//
+// function findUnusedTokens () {
+//     console.time('unused-i18n-token-finder');
+//
+//     const projects = _getProjects(CONFIG_FILE);
+//     projects.forEach((project) => {
+//         const tokens = _loadTokens(project);
+//         const filepaths = _loadFilepaths(project.root, project.search_filepaths);
+//         const unusedTokens = _findUnusedTokens(tokens, filepaths);
+//         _writeResultsToDisk(project.name, unusedTokens);
+//     });
+//
+//     console.log('\nPLEASE NOTE:');
+//     console.log('Since some i18n tokens are generated dynamically,')
+//     console.log('and since some others are formatted in a non-standard way,');
+//     console.log('the lists generated by this script should ALWAYS');
+//     console.log('be verified manually before removing any of the tokens in them.');
+//     console.log('\nThe results are in ./results/[project]/unused_tokens.txt\n');
+//
+//     console.timeEnd('unused-i18n-token-finder');
+// }
 
-// Constants
-const CONFIG_FILE = 'config.json';
-const RESULTS_DIR = './results';
-const RESULTS_FILENAME = 'unused_tokens.txt';
-
-function _makeDirIfNeeded(path) {
-    if (!fs.existsSync(path)) { fs.mkdirSync(path); }
-}
-
-function _writeResultsToDisk(project, unusedTokens) {
-    const filepath = `${RESULTS_DIR}/${project}/${RESULTS_FILENAME}`;
-
-    _makeDirIfNeeded(RESULTS_DIR);
-    _makeDirIfNeeded(`${RESULTS_DIR}/${project}`);
-
-    fs.writeFileSync(
-        filepath,
-        unusedTokens.join('\n')
-    );
-}
-
-function _findUnusedTokens(tokens, filepaths) {
-    tokens = tokens.map(token => ({ value: token, isUsed: false }));
-
-    filepaths.forEach((filepath) => {
-        const fileContents = fs.readFileSync(filepath, 'utf8');
-        tokens.forEach((token) => {
-            if (token.isUsed) { return; }
-
-            // THE TEST
-            if (fileContents.includes(`t('${token.value}`)) {
-                token.isUsed = true;
-            }
-        });
-    });
-
-    const unusedTokens =
-        (tokens.filter(token => token.isUsed === false))
-            .map(token => token.value);
-
-    return unusedTokens;
-}
-
-/**
- * Recursively collect the filepaths of files that
- * satisfy the supplied extension and file system location conditions
- * @param [Array|object] whereToLookAndForWhatExtensions
- * @param [string Array] filepaths							The matching filepaths
- * @returns [string Array] filepaths						The matching filepaths
- */
-function _loadFilepaths(root, locationsAndExtensions, filepaths = []) {
-    const target = locationsAndExtensions;
-
-    if (Array.isArray(target)) {
-        locationsAndExtensions.forEach((locationAndExtensions) => {
-            filepaths = _loadFilepaths(root, locationAndExtensions, filepaths);
-        });
-    } else {
-        const dirEntries = fs.readdirSync(`${root}/${target.dir}`, { withFileTypes: true });
-
-        dirEntries.forEach((dirEntry) => {
-            if (dirEntry.isDirectory()) {
-                filepaths = _loadFilepaths(
-                    root,
-                    {
-                        dir: `${target.dir}/${dirEntry.name}`,
-                        extensions: target.extensions
-                    },
-                    filepaths
-                );
-            } else if (dirEntry.isFile()) {
-                if (target.extensions.some(extension => dirEntry.name.endsWith(extension))) {
-                    filepaths.push(`${root}/${target.dir}/${dirEntry.name}`);
-                }
-            }
-        });
-    }
-
-    return filepaths;
-}
-
-function _loadTokens(project) {
-    const messages = jsonfile.readFileSync(`${project.root}/${project.default_locale_filepath}`, {throws: false});
-
-    if (messages === null) {
-        _bail(`The default locale json file for the '${project.name}' project is missing or invalid.\nCheck the project's 'root' and 'default_locale_filepath' values and the file's syntax.`);
-    }
-
-    return Object.keys(messages);
-}
-
-function _validateConfig(configJson) {
-    if (configJson === null) {
-        _bail(`The config file at\n  ${process.cwd()}/${configFile}\nis missing or invalid.\nPlease check config file location, name, and syntax.`);
-    }
-
-    if (
-        !Array.isArray(configJson["target_projects"])
-        || configJson["target_projects"].length === 0
-    ) {
-        _bail("The 'target_projects' array in the config file is undefined or empty.\nFill it with the names of the projects you want to process and try again.");
-    }
-
-    if (configJson["projects"] === undefined) {
-        _bail("The 'projects' object in the config file is undefined.\nFill it with the details of the projects you want to process and try again.")
-    }
-
-    configJson["target_projects"].forEach((name) => {
-        if (configJson["projects"][name] === undefined) {
-            _bail(`The '${name}' target project is not defined in the config file.\nDefine it and try again.`);
-        }
-    })
-}
-
-function _getProjects(configFile) {
-    const configJson = jsonfile.readFileSync(`${process.cwd()}/${configFile}`, {throws: false});
-
-    _validateConfig(configJson);
-
-    const projects = [];
-    configJson["target_projects"].forEach((projectName) => {
-        const targetProject = configJson["projects"][projectName];
-        targetProject.name = projectName;
-        projects.push(targetProject);
-    });
-
-    return projects;
-}
-
-function _bail(message) {
-    console.error(`\n${message}`);
-    console.error("\nExiting...");
-
-    process.exit();
-}
-
-function findUnusedTokens () {
-    console.time('unused-i18n-token-finder');
-
-    const projects = _getProjects(CONFIG_FILE);
-    projects.forEach((project) => {
-        const tokens = _loadTokens(project);
-        const filepaths = _loadFilepaths(project.root, project.search_filepaths);
-        const unusedTokens = _findUnusedTokens(tokens, filepaths);
-        _writeResultsToDisk(project.name, unusedTokens);
-    });
-
-    console.log('\nPLEASE NOTE:');
-    console.log('Since some i18n tokens are generated dynamically,')
-    console.log('and since some others are formatted in a non-standard way,');
-    console.log('the lists generated by this script should ALWAYS');
-    console.log('be verified manually before removing any of the tokens in them.');
-    console.log('\nThe results are in ./results/[project]/unused_tokens.txt\n');
-
-    console.timeEnd('unused-i18n-token-finder');
-}
-
-// CLI
+//
 console.log("");
-console.log("*** i18n-tools ***");
-console.log("f Find unused tokens");
-console.log("p Purge unused tokens");
+console.log("*** i81n-janitor ***");
 console.log("");
+console.log("Looking for 'i18n-janitor-config.json' config file in this directory...");
 
-const readline = require('readline');
+const configFileExists = fs.existsSync('./i18n-janitor-config.json');
 
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    prompt: 'q Quit | h Instructions: '
-});
+if (configFileExists) {
+    console.log("...config file found!");
+}
+else {
+    console.log("...config file not found!");
+}
 
-rl.prompt();
-
-rl.on('line', (line) => {
-    switch (line.trim()) {
-        case 'f':
-            console.log('looking for unused tokens...');
-            findUnusedTokens();
-            break;
-        case '2':
-            console.log('number two!');
-            break;
-        case 'Q':
-        case 'q':
-            rl.close();
-        default:
-            console.log('Please make a valid selection.');
-            break;
-    }
-    rl.prompt();
-}).on('close', () => {
-    console.log('Have a great day!');
-    process.exit(0);
-});
+// // CLI
+// console.log("");
+// console.log("*** i18n-tools ***");
+// console.log("f Find unused tokens");
+// console.log("p Purge unused tokens");
+// console.log("");
+//
+// const readline = require('readline');
+//
+// const rl = readline.createInterface({
+//     input: process.stdin,
+//     output: process.stdout,
+//     prompt: 'q Quit | h Instructions: '
+// });
+//
+// rl.prompt();
+//
+// rl.on('line', (line) => {
+//     switch (line.trim()) {
+//         case 'f':
+//             console.log('looking for unused tokens...');
+//             findUnusedTokens();
+//             break;
+//         case '2':
+//             console.log('number two!');
+//             break;
+//         case 'Q':
+//         case 'q':
+//             rl.close();
+//         default:
+//             console.log('Please make a valid selection.');
+//             break;
+//     }
+//     rl.prompt();
+// }).on('close', () => {
+//     console.log('Have a great day!');
+//     process.exit(0);
+// });
 

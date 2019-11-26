@@ -1,10 +1,11 @@
 {
   "name": "i18n-janitor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "i18n-janitor is a CLI utility that finds and removes unused localization tokens",
   "bin": "./cli.js",
   "author": "Ilya Zarembsky for Ghostery",
   "dependencies": {
     "jsonfile": "^5.0.0"
-  }
+  },
+  "license": "MPL-2.0"
 }

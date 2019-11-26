@@ -1,0 +1,21 @@
+first time you run it,
+    * if it finds a config file, it uses it as below
+    * if it does not find a config file, it
+        generates a config file with template instructions
+        notifies user that it has done this and what the file is called
+    * exits
+
+if it finds a config file, it
+    * uses this config file to determine where to look etc
+    * outputs results to a file
+    * exits
+
+if it finds a results file, it
+    * asks the user to confirm purge or redo the search
+        * if user redoes the search, it
+            * uses the config file to do the search as above
+            * overwrites the previous results file
+            * exits
+        * if user chooses to purge, it
+            * uses the results file to purge the matching tokens from all the locale files
+            * exits
