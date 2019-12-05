@@ -5,6 +5,7 @@
   "bin": "./cli.js",
   "author": "Ilya Zarembsky for Ghostery",
   "dependencies": {
+    "i18n-janitor": "/Users/ilyazarembsky/Documents/Ghostery/Repos/Ghostery/i18n-janitor",
     "jsonfile": "^5.0.0"
   },
   "license": "MPL-2.0"

@@ -176,20 +176,42 @@ const fs = require('fs');
 //
 //     console.timeEnd('unused-i18n-token-finder');
 // }
+function _defaultConfigFileString() {
+    return (
+    `
+module.exports = {
+    "default_i18n_tokens_file_path": "relative to the project root, where this file should be. e.g., './_locales/en/messages.json",
+}
+    `);
+}
 
-//
+function _createDefaultConfigFile() {
+    console.log("Top of _createDefaultConfigFile");
+    fs.writeFileSync('./i18n-janitor.config.js', _defaultConfigFileString());
+    const config = require('./i18n-janitor.config.js');
+    console.log(config);
+}
+
 console.log("");
 console.log("*** i81n-janitor ***");
 console.log("");
-console.log("Looking for 'i18n-janitor-config.json' config file in this directory...");
+console.log("Looking for 'i18n-janitor.config.js' config file in this directory...");
 
-const configFileExists = fs.existsSync('./i18n-janitor-config.json');
+const configFileExists = fs.existsSync('./i18n-janitor.config.js');
 
 if (configFileExists) {
     console.log("...config file found!");
+    const config = require('./i18n-janitor.config.js');
+    console.log(config);
+    console.log(config.default_i18n_tokens_file_path);
 }
 else {
-    console.log("...config file not found!");
+    console.log("Config file not found.");
+    console.log("Creating default config file.");
+    _createDefaultConfigFile();
+    console.log("Default config file 'i18n-janitor.config.js' created in root directory.");
+    console.log("Please consult the file for instructions on specifying janitorial parameters.");
+    console.log("After you're happy with your configuration, run i18n-janitor again.");
 }
 
 // // CLI

@@ -7,6 +7,11 @@ graceful-fs@^4.1.6:
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.2.tgz#6f0952605d0140c1cfdb138ed005775b92d67b02"
   integrity sha512-IItsdsea19BoLC7ELy13q1iJFNmd7ofZH5+X/pJr90/nRoPEX0DJo1dHDbgtYWOhJhcCgMDTOw84RZ72q6lB+Q==
 
+i18n-janitor@/Users/ilyazarembsky/Documents/Ghostery/Repos/Ghostery/i18n-janitor:
+  version "1.0.1"
+  dependencies:
+    jsonfile "^5.0.0"
+
 jsonfile@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/jsonfile/-/jsonfile-5.0.0.tgz#e6b718f73da420d612823996fdf14a03f6ff6922"
