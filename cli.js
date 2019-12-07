@@ -18,7 +18,7 @@
  */
 
 const fs = require('fs');
-// const jsonfile = require('jsonfile');
+const jsonfile = require('jsonfile');
 //
 // // Constants
 // const CONFIG_FILE = 'config.json';
@@ -101,60 +101,8 @@ const fs = require('fs');
 //     return filepaths;
 // }
 //
-// function _loadTokens(project) {
-//     const messages = jsonfile.readFileSync(`${project.root}/${project.default_locale_filepath}`, {throws: false});
+
 //
-//     if (messages === null) {
-//         _bail(`The default locale json file for the '${project.name}' project is missing or invalid.\nCheck the project's 'root' and 'default_locale_filepath' values and the file's syntax.`);
-//     }
-//
-//     return Object.keys(messages);
-// }
-//
-// function _validateConfig(configJson) {
-//     if (configJson === null) {
-//         _bail(`The config file at\n  ${process.cwd()}/${configFile}\nis missing or invalid.\nPlease check config file location, name, and syntax.`);
-//     }
-//
-//     if (
-//         !Array.isArray(configJson["target_projects"])
-//         || configJson["target_projects"].length === 0
-//     ) {
-//         _bail("The 'target_projects' array in the config file is undefined or empty.\nFill it with the names of the projects you want to process and try again.");
-//     }
-//
-//     if (configJson["projects"] === undefined) {
-//         _bail("The 'projects' object in the config file is undefined.\nFill it with the details of the projects you want to process and try again.")
-//     }
-//
-//     configJson["target_projects"].forEach((name) => {
-//         if (configJson["projects"][name] === undefined) {
-//             _bail(`The '${name}' target project is not defined in the config file.\nDefine it and try again.`);
-//         }
-//     })
-// }
-//
-// function _getProjects(configFile) {
-//     const configJson = jsonfile.readFileSync(`${process.cwd()}/${configFile}`, {throws: false});
-//
-//     _validateConfig(configJson);
-//
-//     const projects = [];
-//     configJson["target_projects"].forEach((projectName) => {
-//         const targetProject = configJson["projects"][projectName];
-//         targetProject.name = projectName;
-//         projects.push(targetProject);
-//     });
-//
-//     return projects;
-// }
-//
-// function _bail(message) {
-//     console.error(`\n${message}`);
-//     console.error("\nExiting...");
-//
-//     process.exit();
-// }
 //
 // function findUnusedTokens () {
 //     console.time('unused-i18n-token-finder');
@@ -176,9 +124,30 @@ const fs = require('fs');
 //
 //     console.timeEnd('unused-i18n-token-finder');
 // }
+
+function _bail(message) {
+    console.error(`\n${message}`);
+    console.error("\nExiting...");
+
+    process.exit();
+}
+
+function _loadTokens(filepath) {
+    const messages = jsonfile.readFileSync(`${filepath}`, {throws: false});
+
+    if (messages === null) {
+        _bail(`The default locale token file is missing or invalid.\nCheck the 'defaultLocaleTokensFilepath' value in the config file and the token file's syntax`);
+    }
+
+    return Object.keys(messages);
+}
+
 function _defaultConfigFileString() {
     return (
     `
+// Instructions:
+// 1. Modify the defaultLocaleTokensFilepath and locationsToLookForTokens property values as needed
+// 2. Once you're done, run i18n-janitor again
 module.exports = {
     defaultLocaleTokensFilepath: "_locales/en/messages.json",
     locationsToLookForTokens: [
@@ -200,9 +169,6 @@ module.exports = {
     `);
 }
 
-const cwd = process.cwd();
-console.log(`cwd: ${cwd}`);
-
 function _logOutConfig(c) {
     console.log(c);
     console.log(c.defaultLocaleTokensFilepath);
@@ -216,12 +182,14 @@ function _createDefaultConfigFile() {
     _logOutConfig(config);
 }
 
+
+const cwd = process.cwd();
+console.log(`cwd: ${cwd}`);
+
 console.log("");
 console.log("*** i81n-janitor ***");
 console.log("");
 console.log("Looking for 'i18n-janitor.config.js' config file in this directory...");
-
-
 
 const configFileExists = fs.existsSync(`${cwd}/i18n-janitor.config.js`);
 
@@ -229,6 +197,19 @@ if (configFileExists) {
     console.log("...config file found!");
     const config = require(`${cwd}/i18n-janitor.config.js`);
     _logOutConfig(config);
+
+    const tokens = _loadTokens(config.defaultLocaleTokensFilepath);
+    console.log('TOKENS:');
+    console.log(tokens);
+
+    /*
+    projects.forEach((project) => {
+        const tokens = _loadTokens(project);
+        const filepaths = _loadFilepaths(project.root, project.search_filepaths);
+        const unusedTokens = _findUnusedTokens(tokens, filepaths);
+        _writeResultsToDisk(project.name, unusedTokens);
+    });
+     */
 }
 else {
     console.log("Config file not found.");
