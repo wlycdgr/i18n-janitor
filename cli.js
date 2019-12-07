@@ -180,17 +180,40 @@ function _defaultConfigFileString() {
     return (
     `
 module.exports = {
-    default_i18n_tokens_file_path: "relative to the project root, where this file should be. e.g., './_locales/en/messages.json'",
-    another_one: "awesome",
-}
+    defaultLocaleTokensFilepath: "_locales/en/messages.json",
+    locationsToLookForTokens: [
+        {
+            dir: "app",
+            extensions: [
+                ".jsx",
+                ".js"
+            ]
+        },
+        {
+            dir: "src",
+            extensions: [
+                ".js"
+            ]
+        },
+    ],
+};
     `);
+}
+
+const cwd = process.cwd();
+console.log(`cwd: ${cwd}`);
+
+function _logOutConfig(c) {
+    console.log(c);
+    console.log(c.defaultLocaleTokensFilepath);
+    console.log(c.locationsToLookForTokens);
 }
 
 function _createDefaultConfigFile() {
     console.log("Top of _createDefaultConfigFile");
-    fs.writeFileSync('./i18n-janitor.config.js', _defaultConfigFileString());
-    const config = require('./i18n-janitor.config.js');
-    console.log(config);
+    fs.writeFileSync(`${cwd}/i18n-janitor.config.js`, _defaultConfigFileString());
+    const config = require(`${cwd}/i18n-janitor.config.js`);
+    _logOutConfig(config);
 }
 
 console.log("");
@@ -198,13 +221,14 @@ console.log("*** i81n-janitor ***");
 console.log("");
 console.log("Looking for 'i18n-janitor.config.js' config file in this directory...");
 
-const configFileExists = fs.existsSync('./i18n-janitor.config.js');
+
+
+const configFileExists = fs.existsSync(`${cwd}/i18n-janitor.config.js`);
 
 if (configFileExists) {
     console.log("...config file found!");
-    const config = require('./i18n-janitor.config.js');
-    console.log(config);
-    console.log(config.default_i18n_tokens_file_path);
+    const config = require(`${cwd}/i18n-janitor.config.js`);
+    _logOutConfig(config);
 }
 else {
     console.log("Config file not found.");
