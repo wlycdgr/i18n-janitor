@@ -41,28 +41,7 @@ const jsonfile = require('jsonfile');
 //     );
 // }
 //
-// function _findUnusedTokens(tokens, filepaths) {
-//     tokens = tokens.map(token => ({ value: token, isUsed: false }));
-//
-//     filepaths.forEach((filepath) => {
-//         const fileContents = fs.readFileSync(filepath, 'utf8');
-//         tokens.forEach((token) => {
-//             if (token.isUsed) { return; }
-//
-//             // THE TEST
-//             if (fileContents.includes(`t('${token.value}`)) {
-//                 token.isUsed = true;
-//             }
-//         });
-//     });
-//
-//     const unusedTokens =
-//         (tokens.filter(token => token.isUsed === false))
-//             .map(token => token.value);
-//
-//     return unusedTokens;
-// }
-//
+
 
 
 //
@@ -93,6 +72,28 @@ function _bail(message) {
     console.error("\nExiting...");
 
     process.exit();
+}
+
+function _findUnusedTokens(tokens, filepaths) {
+    tokens = tokens.map(token => ({ value: token, isUsed: false }));
+
+    filepaths.forEach((filepath) => {
+        const fileContents = fs.readFileSync(filepath, 'utf8');
+        tokens.forEach((token) => {
+            if (token.isUsed) { return; }
+
+            // THE TEST
+            if (fileContents.includes(`t('${token.value}`)) {
+                token.isUsed = true;
+            }
+        });
+    });
+
+    const unusedTokens =
+        (tokens.filter(token => token.isUsed === false))
+            .map(token => token.value);
+
+    return unusedTokens;
 }
 
 /**
@@ -202,10 +203,10 @@ if (configFileExists) {
     _logOutConfig(config);
 
     const tokens = _loadTokens(config.defaultLocaleTokensFilepath);
-
     const filepaths = _loadFilepaths('.', config.locationsToLookForTokens);
-    console.log("FILEPATHS:");
-    console.log(filepaths);
+    const unusedTokens = _findUnusedTokens(tokens, filepaths);
+    console.log("UNUSED TOKENS:");
+    console.log(unusedTokens);
 
     /*
     projects.forEach((project) => {
