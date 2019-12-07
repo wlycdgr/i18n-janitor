@@ -63,44 +63,7 @@ const jsonfile = require('jsonfile');
 //     return unusedTokens;
 // }
 //
-// /**
-//  * Recursively collect the filepaths of files that
-//  * satisfy the supplied extension and file system location conditions
-//  * @param [Array|object] whereToLookAndForWhatExtensions
-//  * @param [string Array] filepaths							The matching filepaths
-//  * @returns [string Array] filepaths						The matching filepaths
-//  */
-// function _loadFilepaths(root, locationsAndExtensions, filepaths = []) {
-//     const target = locationsAndExtensions;
-//
-//     if (Array.isArray(target)) {
-//         locationsAndExtensions.forEach((locationAndExtensions) => {
-//             filepaths = _loadFilepaths(root, locationAndExtensions, filepaths);
-//         });
-//     } else {
-//         const dirEntries = fs.readdirSync(`${root}/${target.dir}`, { withFileTypes: true });
-//
-//         dirEntries.forEach((dirEntry) => {
-//             if (dirEntry.isDirectory()) {
-//                 filepaths = _loadFilepaths(
-//                     root,
-//                     {
-//                         dir: `${target.dir}/${dirEntry.name}`,
-//                         extensions: target.extensions
-//                     },
-//                     filepaths
-//                 );
-//             } else if (dirEntry.isFile()) {
-//                 if (target.extensions.some(extension => dirEntry.name.endsWith(extension))) {
-//                     filepaths.push(`${root}/${target.dir}/${dirEntry.name}`);
-//                 }
-//             }
-//         });
-//     }
-//
-//     return filepaths;
-// }
-//
+
 
 //
 //
@@ -131,6 +94,46 @@ function _bail(message) {
 
     process.exit();
 }
+
+/**
+ * Recursively collect the filepaths of files that
+ * satisfy the supplied extension and file system location conditions
+ * @param [string] root                                     The directory to look relative to
+ * @param [Array|object] locationsAndExtensions             An object or array of objects specifying directory trees and file extensions to check
+ * @param [string Array] filepaths							The matching filepaths
+ * @returns [string Array] filepaths						The matching filepaths
+ */
+function _loadFilepaths(root, locationsAndExtensions, filepaths = []) {
+    const target = locationsAndExtensions;
+
+    if (Array.isArray(target)) {
+        locationsAndExtensions.forEach((locationAndExtensions) => {
+            filepaths = _loadFilepaths(root, locationAndExtensions, filepaths);
+        });
+    } else {
+        const dirEntries = fs.readdirSync(`${root}/${target.dir}`, { withFileTypes: true });
+
+        dirEntries.forEach((dirEntry) => {
+            if (dirEntry.isDirectory()) {
+                filepaths = _loadFilepaths(
+                    root,
+                    {
+                        dir: `${target.dir}/${dirEntry.name}`,
+                        extensions: target.extensions
+                    },
+                    filepaths
+                );
+            } else if (dirEntry.isFile()) {
+                if (target.extensions.some(extension => dirEntry.name.endsWith(extension))) {
+                    filepaths.push(`${root}/${target.dir}/${dirEntry.name}`);
+                }
+            }
+        });
+    }
+
+    return filepaths;
+}
+
 
 function _loadTokens(filepath) {
     const messages = jsonfile.readFileSync(`${filepath}`, {throws: false});
@@ -199,8 +202,10 @@ if (configFileExists) {
     _logOutConfig(config);
 
     const tokens = _loadTokens(config.defaultLocaleTokensFilepath);
-    console.log('TOKENS:');
-    console.log(tokens);
+
+    const filepaths = _loadFilepaths('.', config.locationsToLookForTokens);
+    console.log("FILEPATHS:");
+    console.log(filepaths);
 
     /*
     projects.forEach((project) => {
