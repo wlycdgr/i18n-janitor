@@ -19,28 +19,31 @@
 
 const fs = require('fs');
 const jsonfile = require('jsonfile');
-//
-// // Constants
-// const CONFIG_FILE = 'config.json';
-// const RESULTS_DIR = './results';
-// const RESULTS_FILENAME = 'unused_tokens.txt';
-//
-// function _makeDirIfNeeded(path) {
-//     if (!fs.existsSync(path)) { fs.mkdirSync(path); }
-// }
-//
-// function _writeResultsToDisk(project, unusedTokens) {
-//     const filepath = `${RESULTS_DIR}/${project}/${RESULTS_FILENAME}`;
-//
-//     _makeDirIfNeeded(RESULTS_DIR);
-//     _makeDirIfNeeded(`${RESULTS_DIR}/${project}`);
-//
-//     fs.writeFileSync(
-//         filepath,
-//         unusedTokens.join('\n')
-//     );
-// }
-//
+
+
+
+// Constants
+const TOOL_DIRNAME = 'i18n-janitor';
+const CONFIG_FILENAME = 'config.js';
+const RESULTS_DIRNAME = 'results';
+const RESULTS_FILENAME = "unused_tokens.txt";
+
+function _makeDirIfNeeded(path) {
+    if (!fs.existsSync(path)) { fs.mkdirSync(path); }
+}
+
+function _writeResultsToDisk(unusedTokens) {
+    const filepath = `${RESULTS_DIR}/${project}/${RESULTS_FILENAME}`;
+
+    _makeDirIfNeeded(RESULTS_DIR);
+    _makeDirIfNeeded(`${RESULTS_DIR}/${project}`);
+
+    fs.writeFileSync(
+        filepath,
+        unusedTokens.join('\n')
+    );
+}
+
 
 
 
@@ -67,8 +70,8 @@ const jsonfile = require('jsonfile');
 //     console.timeEnd('unused-i18n-token-finder');
 // }
 
-function _bail(message) {
-    console.error(`\n${message}`);
+function bail(message) {
+    if (message) console.error(`\n${message}`);
     console.error("\nExiting...");
 
     process.exit();
@@ -140,7 +143,7 @@ function _loadTokens(filepath) {
     const messages = jsonfile.readFileSync(`${filepath}`, {throws: false});
 
     if (messages === null) {
-        _bail(`The default locale token file is missing or invalid.\nCheck the 'defaultLocaleTokensFilepath' value in the config file and the token file's syntax`);
+        bail(`The default locale token file is missing or invalid.\nCheck the 'defaultLocaleTokensFilepath' value in the config file and the token file's syntax`);
     }
 
     return Object.keys(messages);
@@ -180,51 +183,90 @@ function _logOutConfig(c) {
 }
 
 function _createDefaultConfigFile() {
-    console.log("Top of _createDefaultConfigFile");
-    fs.writeFileSync(`${cwd}/i18n-janitor.config.js`, _defaultConfigFileString());
-    const config = require(`${cwd}/i18n-janitor.config.js`);
-    _logOutConfig(config);
 }
 
-
+// Needed because './' in require calls is always relative to the invoking file's location,
+// And this tool is installed globally rather than in the directory of the project where it is applied
 const cwd = process.cwd();
 console.log(`cwd: ${cwd}`);
 
-console.log("");
-console.log("*** i81n-janitor ***");
-console.log("");
-console.log("Looking for 'i18n-janitor.config.js' config file in this directory...");
+const toolDirExists = () => fs.existsSync(`${cwd}/${TOOL_DIRNAME}`);
+const configFileExists = () => fs.existsSync(`${cwd}/${TOOL_DIRNAME}/${CONFIG_FILENAME}`);
 
-const configFileExists = fs.existsSync(`${cwd}/i18n-janitor.config.js`);
-
-if (configFileExists) {
-    console.log("...config file found!");
-    const config = require(`${cwd}/i18n-janitor.config.js`);
-    _logOutConfig(config);
-
-    const tokens = _loadTokens(config.defaultLocaleTokensFilepath);
-    const filepaths = _loadFilepaths('.', config.locationsToLookForTokens);
-    const unusedTokens = _findUnusedTokens(tokens, filepaths);
-    console.log("UNUSED TOKENS:");
-    console.log(unusedTokens);
-
-    /*
-    projects.forEach((project) => {
-        const tokens = _loadTokens(project);
-        const filepaths = _loadFilepaths(project.root, project.search_filepaths);
-        const unusedTokens = _findUnusedTokens(tokens, filepaths);
-        _writeResultsToDisk(project.name, unusedTokens);
-    });
-     */
+function print_cli_header() {
+    console.log("");
+    console.log("*** i81n-janitor ***");
+    console.log("");
 }
-else {
-    console.log("Config file not found.");
-    console.log("Creating default config file.");
-    _createDefaultConfigFile();
-    console.log("Default config file 'i18n-janitor.config.js' created in root directory.");
-    console.log("Please consult the file for instructions on specifying janitorial parameters.");
-    console.log("After you're happy with your configuration, run i18n-janitor again.");
+
+function verify_tool_folder_exists_and_make_it_if_it_doesnt() {
+    console.log(`Looking for './${TOOL_DIRNAME}/'`);
+    if (toolDirExists()) {
+        console.log(`./${TOOL_DIRNAME}/ found.`);
+    }
+    else {
+        console.log(`./${TOOL_DIRNAME}/ not found. Creating.`);
+        fs.mkdirSync(`${cwd}/${TOOL_DIRNAME}`);
+        if (toolDirExists()) {
+            console.log(`./${TOOL_DIRNAME}/ successfully created`);
+        }
+        else {
+            bail(`Could not create tool directory './${TOOL_DIRNAME}'. Try checking permissions. Exiting.`);
+        }
+    }
 }
+
+function verify_config_file_exists_and_make_a_default_one_if_it_doesnt() {
+    console.log(`Looking for config file at './${TOOL_DIRNAME}/${CONFIG_FILENAME}`);
+    if (!configFileExists()) {
+        console.log("Config file not found.");
+        console.log("Writing default config file.");
+        fs.writeFileSync(`${cwd}/${TOOL_DIRNAME}/${CONFIG_FILENAME}`, _defaultConfigFileString());
+        if (!configFileExists()) {
+            bail(`Could not write default config file to './${TOOL_DIRNAME}/${CONFIG_FILENAME}'. Try checking permissions. Exiting.`);
+        } else {
+            console.log('Default config file successfully created.');
+            console.log('Please consult the file for configuration instructions.');
+            console.log('After you are happy with the configuration, run i18n-janitor again.');
+            bail();
+        }
+    }
+}
+
+print_cli_header();
+verify_tool_folder_exists_and_make_it_if_it_doesnt();
+verify_config_file_exists_and_make_a_default_one_if_it_doesnt();
+
+// else...
+console.log('Config file found.');
+const config = require(`${cwd}/${TOOL_DIRNAME}/${CONFIG_FILENAME}`);
+_logOutConfig(config);
+
+// console.log('Loading tokens');
+// const tokens = _loadTokens()
+// const configFileExists = fs.existsSync(`${cwd}/i18n-janitor.config.js`);
+//
+// if (configFileExists) {
+//     console.log("...config file found!");
+//     const config = require(`${cwd}/i18n-janitor.config.js`);
+//     _logOutConfig(config);
+//
+//     const tokens = _loadTokens(config.defaultLocaleTokensFilepath);
+//     const filepaths = _loadFilepaths('.', config.locationsToLookForTokens);
+//     const unusedTokens = _findUnusedTokens(tokens, filepaths);
+//     console.log("UNUSED TOKENS:");
+//     console.log(unusedTokens);
+//
+//     _writeResultsToDisk(unusedTokens);
+// }
+// else {
+//     console.log("Config file not found.");
+//     console.log("Creating default config file.");
+//     _createDefaultConfigFile();
+//     console.log("Default config file 'i18n-janitor.config.js' created in root directory.");
+//     console.log("Please consult the file for instructions on specifying janitorial parameters.");
+//     console.log("After you're happy with your configuration, run i18n-janitor again.");
+// }
 
 // // CLI
 // console.log("");
