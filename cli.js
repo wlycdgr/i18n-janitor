@@ -19,24 +19,19 @@
 
 const fs = require('fs');
 const jsonfile = require('jsonfile');
-const { exec } = require('child_process');
 
-exec('nvm use lts/dubnium');
-
-// Constants
-const TOOL_DIRNAME = 'i18n-janitor';
-const CONFIG_FILENAME = 'config.js';
-const RESULTS_DIRNAME = 'results';
-const RESULTS_FILENAME = "unused_tokens.txt";
+// https://stackoverflow.com/questions/5797852/in-node-js-how-do-i-include-functions-from-my-other-files
+require('./funcs.js')();
+const c = require('./constants.js');
 
 function _makeDirIfNeeded(path) {
     if (!fs.existsSync(path)) { fs.mkdirSync(path); }
 }
 
 function _writeResultsToDisk(unusedTokens) {
-    const filepath = `${RESULTS_DIR}/${project}/${RESULTS_FILENAME}`;
+    const filepath = `${RESULTS_DIR}/${project}/${c.RESULTS_FILENAME}`;
 
-    _makeDirIfNeeded(RESULTS_DIR);
+    _makeDirIfNeeded(RESULTS_DIR);``
     _makeDirIfNeeded(`${RESULTS_DIR}/${project}`);
 
     fs.writeFileSync(
@@ -70,13 +65,6 @@ function _writeResultsToDisk(unusedTokens) {
 //
 //     console.timeEnd('unused-i18n-token-finder');
 // }
-
-function bail(message) {
-    if (message) console.error(`\n${message}`);
-    console.error("\nExiting...");
-
-    process.exit();
-}
 
 function _findUnusedTokens(tokens, filepaths) {
     tokens = tokens.map(token => ({ value: token, isUsed: false }));
@@ -181,8 +169,8 @@ module.exports = {
 
 function _logOutConfig(c) {
     console.log(c);
-    console.log(c.defaultLocaleTokensFilepath);
-    console.log(c.locationsToLookForTokens);
+    console.log(defaultLocaleTokensFilepath);
+    console.log(locationsToLookForTokens);
 }
 
 function _createDefaultConfigFile() {
@@ -193,8 +181,8 @@ function _createDefaultConfigFile() {
 const cwd = process.cwd();
 console.log(`cwd: ${cwd}`);
 
-const toolDirExists = () => fs.existsSync(`${cwd}/${TOOL_DIRNAME}`);
-const configFileExists = () => fs.existsSync(`${cwd}/${TOOL_DIRNAME}/${CONFIG_FILENAME}`);
+const toolDirExists = () => fs.existsSync(`${cwd}/${c.TOOL_DIRNAME}`);
+const configFileExists = () => fs.existsSync(`${cwd}/${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`);
 
 function print_cli_header() {
     console.log("");
@@ -202,43 +190,31 @@ function print_cli_header() {
     console.log("");
 }
 
-function check_node_version_and_quit_if_it_is_too_low() {
-    const nodeVersion = process.versions.node;
-    const nodeVersionNumbers = nodeVersion.split('.').map(v => parseInt(v));
-    if (nodeVersionNumbers[0] < 10 || nodeVersionNumbers[1] < 10) {
-        bail(
-            `The node version this is running under is: ${nodeVersion}\n` +
-            'i18n-janitor requires Node 10.10.0+.\n' +
-            'Please switch to a supported version and try again.'
-        );
-    }
-}
-
 function verify_tool_folder_exists_and_make_it_if_it_doesnt() {
-    console.log(`Looking for './${TOOL_DIRNAME}/'`);
+    console.log(`Looking for './${c.TOOL_DIRNAME}/'`);
     if (toolDirExists()) {
-        console.log(`./${TOOL_DIRNAME}/ found.`);
+        console.log(`./${c.TOOL_DIRNAME}/ found.`);
     }
     else {
-        console.log(`./${TOOL_DIRNAME}/ not found. Creating.`);
-        fs.mkdirSync(`${cwd}/${TOOL_DIRNAME}`);
+        console.log(`./${c.TOOL_DIRNAME}/ not found. Creating.`);
+        fs.mkdirSync(`${cwd}/${c.TOOL_DIRNAME}`);
         if (toolDirExists()) {
-            console.log(`./${TOOL_DIRNAME}/ successfully created`);
+            console.log(`./${c.TOOL_DIRNAME}/ successfully created`);
         }
         else {
-            bail(`Could not create tool directory './${TOOL_DIRNAME}'. Try checking permissions.`);
+            bail(`Could not create tool directory './${c.TOOL_DIRNAME}'. Try checking permissions.`);
         }
     }
 }
 
 function verify_config_file_exists_and_make_a_default_one_if_it_doesnt() {
-    console.log(`Looking for config file at './${TOOL_DIRNAME}/${CONFIG_FILENAME}`);
+    console.log(`Looking for config file at './${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`);
     if (!configFileExists()) {
         console.log("Config file not found.");
         console.log("Writing default config file.");
-        fs.writeFileSync(`${cwd}/${TOOL_DIRNAME}/${CONFIG_FILENAME}`, _defaultConfigFileString());
+        fs.writeFileSync(`${cwd}/${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`, _defaultConfigFileString());
         if (!configFileExists()) {
-            bail(`Could not write default config file to './${TOOL_DIRNAME}/${CONFIG_FILENAME}'. Try checking permissions.`);
+            bail(`Could not write default config file to './${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}'. Try checking permissions.`);
         } else {
             console.log('Default config file successfully created.');
             console.log('Please consult the file for configuration instructions.');
@@ -250,7 +226,7 @@ function verify_config_file_exists_and_make_a_default_one_if_it_doesnt() {
 
 function load_config_file() {
     console.log('Config file found.');
-    return require(`${cwd}/${TOOL_DIRNAME}/${CONFIG_FILENAME}`);
+    return require(`${cwd}/${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`);
 }
 
 // START OF EXECUTION
