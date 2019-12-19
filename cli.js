@@ -26,17 +26,7 @@ function _makeDirIfNeeded(path) {
     if (!fs.existsSync(path)) { fs.mkdirSync(path); }
 }
 
-function _writeResultsToDisk(unusedTokens) {
-    const filepath = `${RESULTS_DIR}/${project}/${c.RESULTS_FILENAME}`;
 
-    _makeDirIfNeeded(RESULTS_DIR);``
-    _makeDirIfNeeded(`${RESULTS_DIR}/${project}`);
-
-    fs.writeFileSync(
-        filepath,
-        unusedTokens.join('\n')
-    );
-}
 
 
 
@@ -78,7 +68,7 @@ const config = f.load_config_file();
 const tokens = f.load_tokens(config.defaultLocaleTokensFilepath);
 const filepaths = f.load_filepaths(config.locationsToLookForTokens);
 const unusedTokens = f.find_unused_tokens(tokens, filepaths);
-console.log(unusedTokens);
+f.save_results(unusedTokens);
 
 // if (configFileExists) {
 //     console.log("...config file found!");

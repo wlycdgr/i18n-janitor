@@ -135,6 +135,16 @@ function find_unused_tokens(tokens, filepaths) {
     return Array.from(tokenMap.keys());
 }
 
+function save_results(unusedTokens) {
+    const filepath = `${c.TOOL_DIRNAME}/${c.RESULTS_FILENAME}`;
+    const results = {
+        unusedTokens,
+        timestamp: Date.now()
+    };
+
+    jsonfile.writeFileSync(filepath, results);
+}
+
 function bail(message) {
     if (message) console.error(`\n${message}`);
     console.error("\nExiting...");
@@ -178,5 +188,6 @@ module.exports = {
     load_tokens,
     load_filepaths,
     find_unused_tokens,
+    save_results,
     bail,
 };

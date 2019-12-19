@@ -2,6 +2,5 @@
 module.exports = Object.freeze({
     TOOL_DIRNAME: 'i18n-janitor',
     CONFIG_FILENAME: 'config.js',
-    RESULTS_DIRNAME: 'results',
-    RESULTS_FILENAME: "unused_tokens.txt"
+    RESULTS_FILENAME: "unused_tokens.json"
 });
