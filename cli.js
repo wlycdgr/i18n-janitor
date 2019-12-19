@@ -18,10 +18,8 @@
  */
 
 const fs = require('fs');
-const jsonfile = require('jsonfile');
 
-// https://stackoverflow.com/questions/5797852/in-node-js-how-do-i-include-functions-from-my-other-files
-require('./funcs.js')();
+const f = require('./funcs.js');
 const c = require('./constants.js');
 
 function _makeDirIfNeeded(path) {
@@ -66,186 +64,22 @@ function _writeResultsToDisk(unusedTokens) {
 //     console.timeEnd('unused-i18n-token-finder');
 // }
 
-function _findUnusedTokens(tokens, filepaths) {
-    tokens = tokens.map(token => ({ value: token, isUsed: false }));
-
-    filepaths.forEach((filepath) => {
-        const fileContents = fs.readFileSync(filepath, 'utf8');
-        tokens.forEach((token) => {
-            if (token.isUsed) { return; }
-
-            // THE TEST
-            if (fileContents.includes(`t('${token.value}`)) {
-                token.isUsed = true;
-            }
-        });
-    });
-
-    const unusedTokens =
-        (tokens.filter(token => token.isUsed === false))
-            .map(token => token.value);
-
-    return unusedTokens;
-}
-
-/**
- * Recursively collect the filepaths of files that
- * satisfy the supplied extension and file system location conditions
- * @param [Array|object] locationsAndExtensions             An object or array of objects specifying directory trees and file extensions to check
- * @param [string] root                                     The directory to look relative to
- * @param [string Array] filepaths							The matching filepaths
- * @returns [string Array] filepaths						The matching filepaths
- */
-function load_filepaths(locationsAndExtensions, root = '.', filepaths = []) {
-    const target = locationsAndExtensions;
-
-    if (Array.isArray(target)) {
-        locationsAndExtensions.forEach((locationAndExtensions) => {
-            filepaths = load_filepaths(locationAndExtensions, root, filepaths);
-        });
-    } else {
-        const dirEntries = fs.readdirSync(`${root}/${target.dir}`, { withFileTypes: true });
-
-        console.log(dirEntries);
-
-        dirEntries.forEach((dirEntry) => {
-            if (dirEntry.isDirectory()) {
-                filepaths = load_filepaths(
-                    {
-                        dir: `${target.dir}/${dirEntry.name}`,
-                        extensions: target.extensions
-                    },
-                    root,
-                    filepaths
-                );
-            } else if (dirEntry.isFile()) {
-                if (target.extensions.some(extension => dirEntry.name.endsWith(extension))) {
-                    filepaths.push(`${root}/${target.dir}/${dirEntry.name}`);
-                }
-            }
-        });
-    }
-
-    return filepaths;
-}
 
 
-function load_tokens(filepath) {
-    const messages = jsonfile.readFileSync(`${filepath}`, {throws: false});
-
-    if (messages === null) {
-        bail(`The default locale token file is missing or invalid.\nCheck the 'defaultLocaleTokensFilepath' value in the config file and the token file's syntax`);
-    }
-
-    return Object.keys(messages);
-}
-
-function _defaultConfigFileString() {
-    return (
-    `
-// Instructions:
-// 1. Modify the defaultLocaleTokensFilepath and locationsToLookForTokens property values as needed
-// 2. Once you're done, run i18n-janitor again
-module.exports = {
-    defaultLocaleTokensFilepath: "_locales/en/messages.json",
-    locationsToLookForTokens: [
-        {
-            dir: "app",
-            extensions: [
-                ".jsx",
-                ".js"
-            ]
-        },
-        {
-            dir: "src",
-            extensions: [
-                ".js"
-            ]
-        },
-    ],
-};
-    `);
-}
-
-function _logOutConfig(c) {
-    console.log(c);
-    console.log(defaultLocaleTokensFilepath);
-    console.log(locationsToLookForTokens);
-}
-
-function _createDefaultConfigFile() {
-}
-
-// Needed because './' in require calls is always relative to the invoking file's location,
-// And this tool is installed globally rather than in the directory of the project where it is applied
-const cwd = process.cwd();
-console.log(`cwd: ${cwd}`);
-
-const toolDirExists = () => fs.existsSync(`${cwd}/${c.TOOL_DIRNAME}`);
-const configFileExists = () => fs.existsSync(`${cwd}/${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`);
-
-function print_cli_header() {
-    console.log("");
-    console.log("*** i81n-janitor ***");
-    console.log("");
-}
-
-function verify_tool_folder_exists_and_make_it_if_it_doesnt() {
-    console.log(`Looking for './${c.TOOL_DIRNAME}/'`);
-    if (toolDirExists()) {
-        console.log(`./${c.TOOL_DIRNAME}/ found.`);
-    }
-    else {
-        console.log(`./${c.TOOL_DIRNAME}/ not found. Creating.`);
-        fs.mkdirSync(`${cwd}/${c.TOOL_DIRNAME}`);
-        if (toolDirExists()) {
-            console.log(`./${c.TOOL_DIRNAME}/ successfully created`);
-        }
-        else {
-            bail(`Could not create tool directory './${c.TOOL_DIRNAME}'. Try checking permissions.`);
-        }
-    }
-}
-
-function verify_config_file_exists_and_make_a_default_one_if_it_doesnt() {
-    console.log(`Looking for config file at './${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`);
-    if (!configFileExists()) {
-        console.log("Config file not found.");
-        console.log("Writing default config file.");
-        fs.writeFileSync(`${cwd}/${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`, _defaultConfigFileString());
-        if (!configFileExists()) {
-            bail(`Could not write default config file to './${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}'. Try checking permissions.`);
-        } else {
-            console.log('Default config file successfully created.');
-            console.log('Please consult the file for configuration instructions.');
-            console.log('After you are happy with the configuration, run i18n-janitor again.');
-            bail();
-        }
-    }
-}
-
-function load_config_file() {
-    console.log('Config file found.');
-    return require(`${cwd}/${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`);
-}
 
 // START OF EXECUTION
-check_node_version_and_quit_if_it_is_too_low();
-print_cli_header();
-verify_tool_folder_exists_and_make_it_if_it_doesnt();
-verify_config_file_exists_and_make_a_default_one_if_it_doesnt();
+f.check_node_version_and_quit_if_it_is_too_low();
+f.print_cli_header();
+f.verify_tool_folder_exists_and_make_it_if_it_doesnt();
+f.verify_config_file_exists_and_make_a_default_one_if_it_doesnt();
 // We exit at this point if the config file did not exist
 // Otherwise, we keep going:
-const config = load_config_file();
-const tokens = load_tokens(config.defaultLocaleTokensFilepath);
-const filepaths = load_filepaths(config.locationsToLookForTokens);
-console.log(filepaths);
-//_logOutConfig(filepaths);
+const config = f.load_config_file();
+const tokens = f.load_tokens(config.defaultLocaleTokensFilepath);
+const filepaths = f.load_filepaths(config.locationsToLookForTokens);
+const unusedTokens = f.find_unused_tokens(tokens, filepaths);
+console.log(unusedTokens);
 
-// console.log('Loading tokens');
-// const tokens = _loadTokens()
-// const configFileExists = fs.existsSync(`${cwd}/i18n-janitor.config.js`);
-//
 // if (configFileExists) {
 //     console.log("...config file found!");
 //     const config = require(`${cwd}/i18n-janitor.config.js`);
