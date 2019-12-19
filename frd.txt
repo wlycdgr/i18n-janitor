@@ -7,4 +7,4 @@ if there is no argument or if the argument is anything other than purge, find, o
 if the argument is purge or find and init has not been run, we tell user to run init and exit
 if the argument is init, we create the tool directory, put a default config file there, and exit
 if the argument is find, we parse the config, find the unused tokens based on it, and write results.
-if the argument is purge and there is no results file, we tell user to run find and exit. If there IS a results file, we tell user what files we will purge from and ask for confirmation. If they confirm, we purge, delete results file, and exit. 
+if the argument is purge and there is no results file, we tell user to run find and exit. If there IS a results file, we tell user what files we will purge from and ask for confirmation. If they confirm, we purge, delete results file, and exit.

@@ -17,73 +17,37 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0
  */
 
-const readline = require('readline');
 const f = require('./funcs.js');
+const empty_string = '';
 
 f.check_node_version_and_quit_if_it_is_too_low();
-f.print_cli_header();
 
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    prompt: 'Choose an option: '
-});
+console.log(process.argv);
 
-rl.prompt();
+const arg = process.argv.length > 1 ? process.argv[2] : empty_string;
 
-rl.on('line', (line) => {
-    switch(line.trim()) {
-        case 'f':
+switch (arg) {
+    case 'init':
+        console.log('Doing init stuff');
+        break;
+    case 'find':
+        console.log('Doing find stuff');
+        break;
+    case 'purge':
+        console.log('Doing purge stuff');
+        break;
+    default:
+        console.log('* Instructions *');
+}
 
-    }
-})
-
-f.verify_tool_folder_exists_and_make_it_if_it_doesnt();
-f.verify_config_file_exists_and_make_a_default_one_if_it_doesnt();
-// We exit at this point if the config file did not exist
-// Otherwise, we keep going:
-const config = f.load_config_file();
-const tokens = f.load_tokens(config.defaultLocaleTokensFilepath);
-const filepaths = f.load_filepaths(config.locationsToLookForTokens);
-const unusedTokens = f.find_unused_tokens(tokens, filepaths);
-f.save_results(unusedTokens);
-
-// // CLI
-// console.log("");
-// console.log("*** i18n-tools ***");
-// console.log("f Find unused tokens");
-// console.log("p Purge unused tokens");
-// console.log("");
-//
-// const readline = require('readline');
-//
-// const rl = readline.createInterface({
-//     input: process.stdin,
-//     output: process.stdout,
-//     prompt: 'q Quit | h Instructions: '
-// });
-//
-// rl.prompt();
-//
-// rl.on('line', (line) => {
-//     switch (line.trim()) {
-//         case 'f':
-//             console.log('looking for unused tokens...');
-//             findUnusedTokens();
-//             break;
-//         case '2':
-//             console.log('number two!');
-//             break;
-//         case 'Q':
-//         case 'q':
-//             rl.close();
-//         default:
-//             console.log('Please make a valid selection.');
-//             break;
-//     }
-//     rl.prompt();
-// }).on('close', () => {
-//     console.log('Have a great day!');
-//     process.exit(0);
-// });
+// f.print_cli_header();
+// f.verify_tool_folder_exists_and_make_it_if_it_doesnt();
+// f.verify_config_file_exists_and_make_a_default_one_if_it_doesnt();
+// // We exit at this point if the config file did not exist
+// // Otherwise, we keep going:
+// const config = f.load_config_file();
+// const tokens = f.load_tokens(config.defaultLocaleTokensFilepath);
+// const filepaths = f.load_filepaths(config.locationsToLookForTokens);
+// const unusedTokens = f.find_unused_tokens(tokens, filepaths);
+// f.save_results(unusedTokens);
 
