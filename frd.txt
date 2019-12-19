@@ -1,25 +1,13 @@
 every time you run it,
     * checks process node version
     * if node version below 10.10, prints out notice to run with 10.10+ and exits
+    
+then, it goes into a CLI loop. the menu options differ depending on state.
+if the tool directory does not exist,
+we show
+i) init   (set up the tool directory and generate a default config file. Optionally adds ./i18n-janitor/results to .gitignore)
 
-first time you run it,
-    * if it finds a config file, it uses it as below
-    * DONE if it does not find a config file, it
-        generates a config file with template instructions
-        notifies user that it has done this and what the file is called
-    * DONE exits
-
-if it finds a config file, it
-    * DONE uses this config file to determine where to look etc
-    * outputs results to a file
-    * exits
-
-if it finds a results file, it
-    * asks the user to confirm purge or redo the search
-        * if user redoes the search, it
-            * uses the config file to do the search as above
-            * overwrites the previous results file
-            * exits
-        * if user chooses to purge, it
-            * uses the results file to purge the matching tokens from all the locale files
-            * exits
+after init runs, or if the tool directory already exists on startup, the options are
+f) find unused tokens (uses config file to find unused tokens and saves results to ./i18n-janitor/results/unused-tokens-[timestamp].json
+p) purge unused tokens (uses the results file to remove unused tokens from all locale files. re-generates results file)
+q) quit
