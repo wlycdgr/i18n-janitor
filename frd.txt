@@ -1,12 +1,16 @@
+every time you run it,
+    * checks process node version
+    * if node version below 10.10, prints out notice to run with 10.10+ and exits
+
 first time you run it,
     * if it finds a config file, it uses it as below
-    * if it does not find a config file, it
+    * DONE if it does not find a config file, it
         generates a config file with template instructions
         notifies user that it has done this and what the file is called
-    * exits
+    * DONE exits
 
 if it finds a config file, it
-    * uses this config file to determine where to look etc
+    * DONE uses this config file to determine where to look etc
     * outputs results to a file
     * exits
 

@@ -19,8 +19,9 @@
 
 const fs = require('fs');
 const jsonfile = require('jsonfile');
+const { exec } = require('child_process');
 
-
+exec('nvm use lts/dubnium');
 
 // Constants
 const TOOL_DIRNAME = 'i18n-janitor';
@@ -102,29 +103,31 @@ function _findUnusedTokens(tokens, filepaths) {
 /**
  * Recursively collect the filepaths of files that
  * satisfy the supplied extension and file system location conditions
- * @param [string] root                                     The directory to look relative to
  * @param [Array|object] locationsAndExtensions             An object or array of objects specifying directory trees and file extensions to check
+ * @param [string] root                                     The directory to look relative to
  * @param [string Array] filepaths							The matching filepaths
  * @returns [string Array] filepaths						The matching filepaths
  */
-function _loadFilepaths(root, locationsAndExtensions, filepaths = []) {
+function load_filepaths(locationsAndExtensions, root = '.', filepaths = []) {
     const target = locationsAndExtensions;
 
     if (Array.isArray(target)) {
         locationsAndExtensions.forEach((locationAndExtensions) => {
-            filepaths = _loadFilepaths(root, locationAndExtensions, filepaths);
+            filepaths = load_filepaths(locationAndExtensions, root, filepaths);
         });
     } else {
         const dirEntries = fs.readdirSync(`${root}/${target.dir}`, { withFileTypes: true });
 
+        console.log(dirEntries);
+
         dirEntries.forEach((dirEntry) => {
             if (dirEntry.isDirectory()) {
-                filepaths = _loadFilepaths(
-                    root,
+                filepaths = load_filepaths(
                     {
                         dir: `${target.dir}/${dirEntry.name}`,
                         extensions: target.extensions
                     },
+                    root,
                     filepaths
                 );
             } else if (dirEntry.isFile()) {
@@ -139,7 +142,7 @@ function _loadFilepaths(root, locationsAndExtensions, filepaths = []) {
 }
 
 
-function _loadTokens(filepath) {
+function load_tokens(filepath) {
     const messages = jsonfile.readFileSync(`${filepath}`, {throws: false});
 
     if (messages === null) {
@@ -199,6 +202,18 @@ function print_cli_header() {
     console.log("");
 }
 
+function check_node_version_and_quit_if_it_is_too_low() {
+    const nodeVersion = process.versions.node;
+    const nodeVersionNumbers = nodeVersion.split('.').map(v => parseInt(v));
+    if (nodeVersionNumbers[0] < 10 || nodeVersionNumbers[1] < 10) {
+        bail(
+            `The node version this is running under is: ${nodeVersion}\n` +
+            'i18n-janitor requires Node 10.10.0+.\n' +
+            'Please switch to a supported version and try again.'
+        );
+    }
+}
+
 function verify_tool_folder_exists_and_make_it_if_it_doesnt() {
     console.log(`Looking for './${TOOL_DIRNAME}/'`);
     if (toolDirExists()) {
@@ -211,7 +226,7 @@ function verify_tool_folder_exists_and_make_it_if_it_doesnt() {
             console.log(`./${TOOL_DIRNAME}/ successfully created`);
         }
         else {
-            bail(`Could not create tool directory './${TOOL_DIRNAME}'. Try checking permissions. Exiting.`);
+            bail(`Could not create tool directory './${TOOL_DIRNAME}'. Try checking permissions.`);
         }
     }
 }
@@ -223,7 +238,7 @@ function verify_config_file_exists_and_make_a_default_one_if_it_doesnt() {
         console.log("Writing default config file.");
         fs.writeFileSync(`${cwd}/${TOOL_DIRNAME}/${CONFIG_FILENAME}`, _defaultConfigFileString());
         if (!configFileExists()) {
-            bail(`Could not write default config file to './${TOOL_DIRNAME}/${CONFIG_FILENAME}'. Try checking permissions. Exiting.`);
+            bail(`Could not write default config file to './${TOOL_DIRNAME}/${CONFIG_FILENAME}'. Try checking permissions.`);
         } else {
             console.log('Default config file successfully created.');
             console.log('Please consult the file for configuration instructions.');
@@ -233,14 +248,23 @@ function verify_config_file_exists_and_make_a_default_one_if_it_doesnt() {
     }
 }
 
+function load_config_file() {
+    console.log('Config file found.');
+    return require(`${cwd}/${TOOL_DIRNAME}/${CONFIG_FILENAME}`);
+}
+
+// START OF EXECUTION
+check_node_version_and_quit_if_it_is_too_low();
 print_cli_header();
 verify_tool_folder_exists_and_make_it_if_it_doesnt();
 verify_config_file_exists_and_make_a_default_one_if_it_doesnt();
-
-// else...
-console.log('Config file found.');
-const config = require(`${cwd}/${TOOL_DIRNAME}/${CONFIG_FILENAME}`);
-_logOutConfig(config);
+// We exit at this point if the config file did not exist
+// Otherwise, we keep going:
+const config = load_config_file();
+const tokens = load_tokens(config.defaultLocaleTokensFilepath);
+const filepaths = load_filepaths(config.locationsToLookForTokens);
+console.log(filepaths);
+//_logOutConfig(filepaths);
 
 // console.log('Loading tokens');
 // const tokens = _loadTokens()
