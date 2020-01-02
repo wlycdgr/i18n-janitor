@@ -18,36 +18,46 @@
  */
 
 const f = require('./funcs.js');
-const empty_string = '';
 
 f.check_node_version_and_quit_if_it_is_too_low();
 
 console.log(process.argv);
 
-const arg = process.argv.length > 1 ? process.argv[2] : empty_string;
-
-switch (arg) {
+switch (f.parse_cli_argument()) {
     case 'init':
-        console.log('Doing init stuff');
+        handle_init_request();
         break;
     case 'find':
-        console.log('Doing find stuff');
+        handle_find_request();
         break;
     case 'purge':
         console.log('Doing purge stuff');
         break;
     default:
-        console.log('* Instructions *');
+        print_instructions();
+        console.log
 }
 
-// f.print_cli_header();
-// f.verify_tool_folder_exists_and_make_it_if_it_doesnt();
-// f.verify_config_file_exists_and_make_a_default_one_if_it_doesnt();
-// // We exit at this point if the config file did not exist
-// // Otherwise, we keep going:
-// const config = f.load_config_file();
-// const tokens = f.load_tokens(config.defaultLocaleTokensFilepath);
-// const filepaths = f.load_filepaths(config.locationsToLookForTokens);
-// const unusedTokens = f.find_unused_tokens(tokens, filepaths);
-// f.save_results(unusedTokens);
+function handle_init_request() {
+    console.log('Doing init stuff');
+    f.verify_tool_folder_exists_and_make_it_if_it_doesnt();
+    f.verify_config_file_exists_and_make_a_default_one_if_it_doesnt();
+}
+
+function handle_find_request() {
+    handle_init_request();
+    console.log('Doing find stuff');
+    const config = f.load_config_file();
+    const tokens = f.load_tokens(config.defaultLocaleTokensFilepath);
+    const filepaths = f.load_filepaths(config.locationsToLookForTokens);
+    const unusedTokens = f.find_unused_tokens(tokens, filepaths);
+    f.save_results(unusedTokens);
+}
+
+function print_instructions() {
+    console.log('* i18n-janitor instructions *\n\n');
+    console.log('i18n-janitor init: creates tool directory and default config file');
+    console.log('i18n-janitor find: uses config file to find unused tokens and saves results to tool directory');
+    console.log('i18n-janitor purge: removes all tokens from the results file produced by `i18n-janitor find` from the locale json files specified in the config file');
+}
 

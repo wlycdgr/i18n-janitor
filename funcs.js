@@ -9,6 +9,10 @@ const c = require('./constants.js');
 // And this tool is installed globally rather than in the directory of the project where it is applied
 const cwd = process.cwd();
 
+function parse_cli_argument() {
+    return process.argv.length > 1 ? process.argv[2] : '';
+}
+
 const toolDirExists = () => fs.existsSync(`${cwd}/${c.TOOL_DIRNAME}`);
 const configFileExists = () => fs.existsSync(`${cwd}/${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`);
 
@@ -19,7 +23,7 @@ function check_node_version_and_quit_if_it_is_too_low () {
         this.bail(
             `The node version this is running under is: ${nodeVersion}\n` +
             'i18n-janitor requires Node 10.10.0+.\n' +
-            'Please switch to a supported version and try again.'
+            'Please switch to a supported version (for example, by running `nvm use lts/dubnium`) and try again.'
         );
     }
 }
@@ -181,6 +185,7 @@ module.exports = {
 
 module.exports = {
     check_node_version_and_quit_if_it_is_too_low,
+    parse_cli_argument,
     print_cli_header,
     verify_tool_folder_exists_and_make_it_if_it_doesnt,
     verify_config_file_exists_and_make_a_default_one_if_it_doesnt,
