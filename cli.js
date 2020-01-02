@@ -31,7 +31,7 @@ switch (f.parse_cli_argument()) {
         handle_find_request();
         break;
     case 'purge':
-        console.log('Doing purge stuff');
+        handle_purge_request();
         break;
     default:
         print_instructions();
@@ -52,6 +52,27 @@ function handle_find_request() {
     const filepaths = f.load_filepaths(config.locationsToLookForTokens);
     const unusedTokens = f.find_unused_tokens(tokens, filepaths);
     f.save_results(unusedTokens);
+}
+
+function handle_purge_request() {
+    handle_init_request();
+    console.log('Doing purge stuff');
+    f.check_that_results_file_exists_and_exit_if_it_doesnt();
+    const config = f.load_config_file();
+    const unusedTokens = f.load_unused_tokens_from_results_file();
+    const localeFiles = f.load_locale_filepaths(config.localeTokensFilepaths);
+    f.delete_unused_tokens_from_locale_files(unusedTokens, localeFiles);
+
+    // check if results file exists
+    // if it does not,
+    //  exit
+    // if it does,
+    //  open it & load in the unused token keys
+    //  for each locale tokens file
+    //      open the file
+    //      delete the unused tokens from it:
+    //          for each unused_token, execute delete(localeTokensJson.unused_token)
+    //      write changes
 }
 
 function print_instructions() {
