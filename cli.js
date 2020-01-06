@@ -35,7 +35,6 @@ switch (f.parse_cli_argument()) {
         break;
     default:
         print_instructions();
-        console.log
 }
 
 function handle_init_request() {
