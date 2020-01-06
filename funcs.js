@@ -23,7 +23,7 @@ const resultsFileExists = () => fs.existsSync(`${resultsFilepath}`);
 function check_node_version_and_quit_if_it_is_too_low () {
     const nodeVersion = process.versions.node;
     const nodeVersionNumbers = nodeVersion.split('.').map(v => parseInt(v));
-    if (nodeVersionNumbers[0] < 10 || nodeVersionNumbers[1] < 10) {
+    if (nodeVersionNumbers[0] < 10 || (nodeVersionNumbers[0] === 10 && nodeVersionNumbers[1] < 10)) {
         this.bail(
             `The node version this is running under is: ${nodeVersion}\n` +
             'i18n-janitor requires Node 10.10.0+.\n' +

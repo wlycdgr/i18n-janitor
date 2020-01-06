@@ -21,8 +21,6 @@ const f = require('./funcs.js');
 
 f.check_node_version_and_quit_if_it_is_too_low();
 
-console.log(process.argv);
-
 switch (f.parse_cli_argument()) {
     case 'init':
         handle_init_request();
