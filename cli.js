@@ -36,9 +36,8 @@ switch (f.parse_cli_argument()) {
 }
 
 function handle_init_request() {
-    console.log('Doing init stuff');
-    f.verify_tool_folder_exists_and_make_it_if_it_doesnt();
-    f.verify_config_file_exists_and_make_a_default_one_if_it_doesnt();
+    f.create_tool_folder_if_it_doesnt_exist();
+    f.create_default_config_file_if_it_doesnt_exist();
 }
 
 function handle_find_request() {
@@ -52,11 +51,11 @@ function handle_find_request() {
 }
 
 function handle_purge_request() {
-    handle_init_request();
-    console.log('Doing purge stuff');
-    f.check_that_results_file_exists_and_exit_if_it_doesnt();
-   // const config = f.load_config_file();
-   // const unusedTokens = f.load_unused_tokens_from_results_file();
+    f.quit_if_tool_folder_doesnt_exist();
+    f.quit_if_config_file_doesnt_exist();
+    f.quit_if_results_file_doesnt_exist();
+    const config = f.load_config_file();
+    const unusedTokens = f.load_unused_tokens_from_results_file();
    // const localeFiles = f.load_locale_filepaths(config.localeTokensFilepaths);
    // f.delete_unused_tokens_from_locale_files(unusedTokens, localeFiles);
 
