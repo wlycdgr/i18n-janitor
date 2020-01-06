@@ -45,8 +45,8 @@ function handle_init_request() {
 }
 
 function handle_find_request() {
-    handle_init_request();
-    console.log('Doing find stuff');
+    f.quit_if_tool_folder_doesnt_exist();
+    f.quit_if_config_file_doesnt_exist();
     const config = f.load_config_file();
     const tokens = f.load_tokens(config.defaultLocaleTokensFilepath);
     const filepaths = f.load_filepaths(config.locationsToLookForTokens);
@@ -58,10 +58,10 @@ function handle_purge_request() {
     handle_init_request();
     console.log('Doing purge stuff');
     f.check_that_results_file_exists_and_exit_if_it_doesnt();
-    const config = f.load_config_file();
-    const unusedTokens = f.load_unused_tokens_from_results_file();
-    const localeFiles = f.load_locale_filepaths(config.localeTokensFilepaths);
-    f.delete_unused_tokens_from_locale_files(unusedTokens, localeFiles);
+   // const config = f.load_config_file();
+   // const unusedTokens = f.load_unused_tokens_from_results_file();
+   // const localeFiles = f.load_locale_filepaths(config.localeTokensFilepaths);
+   // f.delete_unused_tokens_from_locale_files(unusedTokens, localeFiles);
 
     // check if results file exists
     // if it does not,

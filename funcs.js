@@ -13,8 +13,12 @@ function parse_cli_argument() {
     return process.argv.length > 1 ? process.argv[2] : '';
 }
 
-const toolDirExists = () => fs.existsSync(`${cwd}/${c.TOOL_DIRNAME}`);
-const configFileExists = () => fs.existsSync(`${cwd}/${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`);
+const configFilepath = `${cwd}/${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`;
+const resultsFilepath = `${cwd}/${c.TOOL_DIRNAME}/${c.RESULTS_FILENAME}`;
+const toolDirpath = `${cwd}/${c.TOOL_DIRNAME}`;
+const toolDirExists = () => fs.existsSync(`${toolDirpath}`);
+const configFileExists = () => fs.existsSync(`${configFilepath}`);
+const resultsFileExists = () => fs.existsSync(`${resultsFilepath}`);
 
 function check_node_version_and_quit_if_it_is_too_low () {
     const nodeVersion = process.versions.node;
@@ -28,12 +32,6 @@ function check_node_version_and_quit_if_it_is_too_low () {
     }
 }
 
-function print_cli_header() {
-    console.log("");
-    console.log("*** i81n-janitor ***");
-    console.log("");
-}
-
 function verify_tool_folder_exists_and_make_it_if_it_doesnt() {
     console.log(`Looking for './${c.TOOL_DIRNAME}/'`);
     if (toolDirExists()) {
@@ -41,36 +39,51 @@ function verify_tool_folder_exists_and_make_it_if_it_doesnt() {
     }
     else {
         console.log(`./${c.TOOL_DIRNAME}/ not found. Creating.`);
-        fs.mkdirSync(`${cwd}/${c.TOOL_DIRNAME}`);
+        fs.mkdirSync(`${toolDirpath}`);
         if (toolDirExists()) {
             console.log(`./${c.TOOL_DIRNAME}/ successfully created`);
         }
         else {
-            bail(`Could not create tool directory './${c.TOOL_DIRNAME}'. Try checking permissions.`);
+            bail(`Could not create tool directory './${c.TOOL_DIRNAME}'.`);
         }
     }
 }
 
 function verify_config_file_exists_and_make_a_default_one_if_it_doesnt() {
-    console.log(`Looking for config file at './${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`);
+    console.log(`Looking for config file at './${configFilepath}`);
     if (!configFileExists()) {
         console.log("Config file not found.");
         console.log("Writing default config file.");
-        fs.writeFileSync(`${cwd}/${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`, _defaultConfigFileString());
+        fs.writeFileSync(`${configFilepath}`, _defaultConfigFileString());
         if (!configFileExists()) {
-            bail(`Could not write default config file to './${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}'. Try checking permissions.`);
+            bail(`Could not write default config file to './${configFilepath}'.`);
         } else {
             console.log('Default config file successfully created.');
             console.log('Please consult the file for configuration instructions.');
-            console.log('After you are happy with the configuration, run i18n-janitor again.');
+            console.log('When done configuring, run i18n-janitor find.');
             bail();
         }
     }
 }
 
+function quit_if_tool_folder_doesnt_exist() {
+    if(!toolDirExists()) {
+        bail(`The tool directory ${toolDirpath} does not exist.\nGenerate it with i18n-janitor init and try again.`);
+    }
+}
+
+function quit_if_config_file_doesnt_exist() {
+    if (!configFileExists()) {
+        bail(`The config file ${configFilepath} does not exist.\nGenerate it with i18n-janitor init and try again.`);
+    }
+}
+
 function load_config_file() {
-    console.log('Config file found.');
-    return require(`${cwd}/${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`);
+    if (!configFileExists()) {
+        bail(`Required config file not found at ${configFilepath}`);
+    }
+    console.log(`Loading configuration from ${configFilepath}`);
+    return require(`${configFilepath}`);
 }
 
 function load_tokens(filepath) {
@@ -87,19 +100,18 @@ function load_tokens(filepath) {
  * Recursively collect the filepaths of files that
  * satisfy the supplied extension and file system location conditions
  * @param [Array|object] locationsAndExtensions             An object or array of objects specifying directory trees and file extensions to check
- * @param [string] root                                     The directory to look relative to
  * @param [string Array] filepaths							The matching filepaths
  * @returns [string Array] filepaths						The matching filepaths
  */
-function load_filepaths(locationsAndExtensions, root = '.', filepaths = []) {
+function load_filepaths(locationsAndExtensions, filepaths = []) {
     const target = locationsAndExtensions;
 
     if (Array.isArray(target)) {
         locationsAndExtensions.forEach((locationAndExtensions) => {
-            filepaths = load_filepaths(locationAndExtensions, root, filepaths);
+            filepaths = load_filepaths(locationAndExtensions, filepaths);
         });
     } else {
-        const dirEntries = fs.readdirSync(`${root}/${target.dir}`, { withFileTypes: true });
+        const dirEntries = fs.readdirSync(`./${target.dir}`, { withFileTypes: true });
 
         dirEntries.forEach((dirEntry) => {
             if (dirEntry.isDirectory()) {
@@ -108,12 +120,11 @@ function load_filepaths(locationsAndExtensions, root = '.', filepaths = []) {
                         dir: `${target.dir}/${dirEntry.name}`,
                         extensions: target.extensions
                     },
-                    root,
                     filepaths
                 );
             } else if (dirEntry.isFile()) {
                 if (target.extensions.some(extension => dirEntry.name.endsWith(extension))) {
-                    filepaths.push(`${root}/${target.dir}/${dirEntry.name}`);
+                    filepaths.push(`./${target.dir}/${dirEntry.name}`);
                 }
             }
         });
@@ -140,13 +151,25 @@ function find_unused_tokens(tokens, filepaths) {
 }
 
 function save_results(unusedTokens) {
-    const filepath = `${c.TOOL_DIRNAME}/${c.RESULTS_FILENAME}`;
+    const filepath = `${resultsFilepath}`;
     const results = {
         unusedTokens,
         timestamp: Date.now()
     };
 
     jsonfile.writeFileSync(filepath, results);
+}
+
+function check_that_results_file_exists_and_exit_if_it_doesnt() {
+    if (!resultsFileExists()) {
+        this.bail(
+            `Did not find a results file at ${resultsFilepath}\n` +
+            'Please generate it using i18n-janitor find,\n' +
+            'Double-check it to make sure it doesn\'t contain any false positives\n' +
+            '(for example, keys that are dynamically assembled by the code),\n' +
+            'and run i18n-janitor purge again.'
+        );
+    }
 }
 
 function bail(message) {
@@ -161,7 +184,8 @@ function _defaultConfigFileString() {
         `
 // Instructions:
 // 1. Modify the defaultLocaleTokensFilepath and locationsToLookForTokens property values as needed
-// 2. Once you're done, run i18n-janitor again
+//      Paths should be relative to the project root
+// 2. Once you're done, run i18n-janitor find from the project root
 module.exports = {
     defaultLocaleTokensFilepath: "_locales/en/messages.json",
     locationsToLookForTokens: [
@@ -186,13 +210,15 @@ module.exports = {
 module.exports = {
     check_node_version_and_quit_if_it_is_too_low,
     parse_cli_argument,
-    print_cli_header,
     verify_tool_folder_exists_and_make_it_if_it_doesnt,
     verify_config_file_exists_and_make_a_default_one_if_it_doesnt,
+    quit_if_tool_folder_doesnt_exist,
+    quit_if_config_file_doesnt_exist,
     load_config_file,
     load_tokens,
     load_filepaths,
     find_unused_tokens,
     save_results,
+    check_that_results_file_exists_and_exit_if_it_doesnt,
     bail,
 };
