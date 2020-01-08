@@ -56,7 +56,8 @@ function handle_purge_request() {
     f.quit_if_results_file_doesnt_exist();
     const config = f.load_config_file();
     const unusedTokens = f.load_unused_tokens_from_results_file();
-   // const localeFiles = f.load_locale_filepaths(config.localeTokensFilepaths);
+    const localeFiles = f.load_locale_filepaths(config.locales);
+    console.log(localeFiles);
    // f.delete_unused_tokens_from_locale_files(unusedTokens, localeFiles);
 
     // check if results file exists

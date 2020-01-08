@@ -183,8 +183,40 @@ function quit_if_results_file_doesnt_exist() {
 function load_unused_tokens_from_results_file() {
     const resultsJSON = jsonfile.readFileSync(`${resultsFilepath}`, {throws: false});
 
-    console.log('resultsJSON in load_unused_tokens_from_results_file:');
-    console.log(resultsJSON);
+    if (resultsJSON === null) {
+        _bail('Error loading results file. Please check that it is valid JSON');
+    }
+    if (!Array.isArray(resultsJSON.unusedTokens)) {
+        _bail('unusedTokens property in results file is missing or invalid. Please check the results file.');
+    }
+
+    return resultsJSON.unusedTokens;
+}
+
+// locales is an object with 3 properties:
+// locales.root: the root directory for localization files
+// locales.filename: the locale token filename; should be the same for all locales
+// locales.default: the default locale; not used by this function
+function load_locale_filepaths(locales, currentDir = '', result = []) {
+    if (currentDir === '') { currentDir = locales.root; }
+
+    const dirEntries = fs.readdirSync(`./${currentDir}`, { withFileTypes: true });
+
+    dirEntries.forEach((dirEntry) => {
+        if (dirEntry.isDirectory()) {
+            result = load_locale_filepaths(
+                locales,
+                `${currentDir}/${dirEntry.name}`,
+                result
+            );
+        } else if (dirEntry.isFile()) {
+            if (locales.filename === dirEntry.name) {
+                result.push(`./${currentDir}/${dirEntry.name}`);
+            }
+        }
+    });
+
+    return result;
 }
 
 function _bail(message) {
@@ -218,6 +250,10 @@ module.exports = {
             ]
         },
     ],
+    locales: {
+        root: "_locales",
+        filename: "messages.json",
+    }
 };
     `);
 }
@@ -236,4 +272,5 @@ module.exports = {
     save_results,
     quit_if_results_file_doesnt_exist,
     load_unused_tokens_from_results_file,
+    load_locale_filepaths,
 };
