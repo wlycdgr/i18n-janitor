@@ -51,13 +51,13 @@ function create_tool_folder_if_it_doesnt_exist() {
 }
 
 function create_default_config_file_if_it_doesnt_exist() {
-    console.log(`Looking for config file at './${configFilepath}`);
+    console.log(`Looking for config file at ./${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`);
     if (!configFileExists()) {
         console.log("Config file not found.");
         console.log("Writing default config file.");
         fs.writeFileSync(`${configFilepath}`, _defaultConfigFileString());
         if (!configFileExists()) {
-            _bail(`Could not write default config file to './${configFilepath}'.`);
+            _bail(`Could not write default config file to ./${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}.`);
         } else {
             console.log('Default config file successfully created.');
             console.log('Please consult the file for configuration instructions.');
@@ -83,7 +83,7 @@ function load_config_file() {
     if (!configFileExists()) {
         _bail(`Required config file not found at ${configFilepath}`);
     }
-    console.log(`Loading configuration from ${configFilepath}`);
+    console.log(`Loading configuration from ./${c.TOOL_DIRNAME}/${c.CONFIG_FILENAME}`);
     return require(`${configFilepath}`);
 }
 
@@ -159,6 +159,13 @@ function save_results(unusedTokens) {
     };
 
     jsonfile.writeFileSync(filepath, results);
+
+    if (!resultsFileExists()) {
+        _bail('Could not write results file.');
+    }
+    else {
+        console.log(`Results written to ./${c.TOOL_DIRNAME}/${c.RESULTS_FILENAME}`);
+    }
 }
 
 function quit_if_results_file_doesnt_exist() {
