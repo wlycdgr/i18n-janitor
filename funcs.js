@@ -174,7 +174,10 @@ function quit_if_results_file_doesnt_exist() {
 }
 
 function load_unused_tokens_from_results_file() {
-    console.log("load_unused_tokens_from_results_file called");
+    const resultsJSON = jsonfile.readFileSync(`${resultsFilepath}`, {throws: false});
+
+    console.log('resultsJSON in load_unused_tokens_from_results_file:');
+    console.log(resultsJSON);
 }
 
 function _bail(message) {
