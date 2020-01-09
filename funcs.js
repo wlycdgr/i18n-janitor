@@ -230,6 +230,8 @@ function delete_unused_tokens_from_locale_files(unusedTokens, localeFiles) {
 
         unusedTokens.forEach(unusedToken => delete(tokens[unusedToken]));
 
+        // use { replacer: , spaces: } options to format output
+        // https://github.com/jprichardson/node-jsonfile/blob/master/index.js
         jsonfile.writeFileSync(`${localeFile}`, tokens);
 
         console.log(`Unused tokens deleted from ${localeFile}.`);
