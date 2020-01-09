@@ -57,19 +57,7 @@ function handle_purge_request() {
     const config = f.load_config_file();
     const unusedTokens = f.load_unused_tokens_from_results_file();
     const localeFiles = f.load_locale_filepaths(config.locales);
-    console.log(localeFiles);
-   // f.delete_unused_tokens_from_locale_files(unusedTokens, localeFiles);
-
-    // check if results file exists
-    // if it does not,
-    //  exit
-    // if it does,
-    //  open it & load in the unused token keys
-    //  for each locale tokens file
-    //      open the file
-    //      delete the unused tokens from it:
-    //          for each unused_token, execute delete(localeTokensJson.unused_token)
-    //      write changes
+    f.delete_unused_tokens_from_locale_files(unusedTokens, localeFiles);
 }
 
 function print_instructions() {

@@ -219,6 +219,26 @@ function load_locale_filepaths(locales, currentDir = '', result = []) {
     return result;
 }
 
+function delete_unused_tokens_from_locale_files(unusedTokens, localeFiles) {
+    localeFiles.forEach(localeFile => {
+        const tokens = jsonfile.readFileSync(`${localeFile}`, {throws: false});
+
+        if (tokens === null) {
+            console.log(`Could not load ${localeFile}. Skipping and continuing.`);
+            return;
+        }
+
+        unusedTokens.forEach(unusedToken => delete(tokens[unusedToken]));
+
+        jsonfile.writeFileSync(`${localeFile}`, tokens);
+
+        console.log(`Unused tokens deleted from ${localeFile}.`);
+    });
+
+    console.log('Unused token purge complete. Time to rebuild and see what broke!');
+    console.log('Thank you and have a nice day :)');
+}
+
 function _bail(message) {
     if (message) console.error(`\n${message}`);
     console.error("\nExiting...");
@@ -273,4 +293,5 @@ module.exports = {
     quit_if_results_file_doesnt_exist,
     load_unused_tokens_from_results_file,
     load_locale_filepaths,
+    delete_unused_tokens_from_locale_files,
 };
