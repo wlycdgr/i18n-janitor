@@ -1,2 +1,5 @@
 # Node
 node_modules/
+
+# IntelliJ IDE settings
+.idea/
