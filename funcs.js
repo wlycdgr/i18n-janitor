@@ -158,7 +158,9 @@ function save_results(unusedTokens) {
         timestamp: Date.now()
     };
 
-    jsonfile.writeFileSync(filepath, results);
+    // use { replacer: , spaces: } options to format output
+    // https://github.com/jprichardson/node-jsonfile/blob/master/index.js
+    jsonfile.writeFileSync(filepath, results, { spaces: 4});
 
     if (!resultsFileExists()) {
         _bail('Could not write results file.');
@@ -232,7 +234,7 @@ function delete_unused_tokens_from_locale_files(unusedTokens, localeFiles) {
 
         // use { replacer: , spaces: } options to format output
         // https://github.com/jprichardson/node-jsonfile/blob/master/index.js
-        jsonfile.writeFileSync(`${localeFile}`, tokens);
+        jsonfile.writeFileSync(`${localeFile}`, tokens, { spaces: 4});
 
         console.log(`Unused tokens deleted from ${localeFile}.`);
     });
@@ -256,28 +258,28 @@ function _defaultConfigFileString() {
 //      Paths should be relative to the project root
 // 2. Once you're done, run i18n-janitor find from the project root
 module.exports = {
-    defaultLocaleTokensFilepath: "_locales/en/messages.json",
-    locationsToLookForTokens: [
-        {
-            dir: "app",
-            extensions: [
-                ".jsx",
-                ".js"
-            ]
-        },
-        {
-            dir: "src",
-            extensions: [
-                ".js"
-            ]
-        },
-    ],
-    locales: {
-        root: "_locales",
-        filename: "messages.json",
-    }
+\tdefaultLocaleTokensFilepath: '_locales/en/messages.json',
+\tlocationsToLookForTokens: [
+\t\t{
+\t\t\tdir: 'app',
+\t\t\textensions: [
+\t\t\t\t'.jsx',
+\t\t\t\t'.js'
+\t\t\t]
+\t\t},
+\t\t{
+\t\t\tdir: 'src',
+\t\t\textensions: [
+\t\t\t\t'.js'
+\t\t\t]
+\t\t},
+\t],
+\tlocales: {
+\t\troot: '_locales',
+\t\tfilename: 'messages.json',
+\t}
 };
-    `);
+`   );
 }
 
 module.exports = {
