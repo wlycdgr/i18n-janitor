@@ -1,8 +1,2 @@
 # Node
 node_modules/
-
-# output
-results/
-
-# build artifacts
-i18n-janitor.config.js
