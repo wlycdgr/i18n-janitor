@@ -46,7 +46,7 @@ function handle_find_request() {
     const config = f.load_config_file();
     const tokens = f.load_tokens(config.defaultLocaleTokensFilepath);
     const filepaths = f.load_filepaths(config.locationsToLookForTokens);
-    const unusedTokens = f.find_unused_tokens(tokens, filepaths, config.checkExtensionManifest);
+    const unusedTokens = f.find_unused_tokens(tokens, filepaths, config.getMessageAlias, config.checkExtensionManifest);
     f.save_results(unusedTokens);
 }
 

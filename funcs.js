@@ -134,7 +134,7 @@ function load_filepaths(locationsAndExtensions, filepaths = []) {
     return filepaths;
 }
 
-function find_unused_tokens(tokens, filepaths, checkExtensionManifest) {
+function find_unused_tokens(tokens, filepaths, getMessageAlias, checkExtensionManifest) {
     const tokenMap = new Map();
     tokens.forEach(token => tokenMap.set(token, token));
 
@@ -142,7 +142,7 @@ function find_unused_tokens(tokens, filepaths, checkExtensionManifest) {
         const fileContents = fs.readFileSync(filepath, 'utf8');
 
         tokenMap.forEach((token) => {
-            if (fileContents.includes(`t('${token}`)) {
+            if (fileContents.includes(`${getMessageAlias}('${token}`)) {
                 tokenMap.delete(token);
             }
         })
@@ -282,6 +282,9 @@ module.exports = {
 \t// the tool will check manifest.json for the manifest-specific __MSG_[token]__ format i18n tokens
 \t// https://developer.chrome.com/extensions/i18n
 \tcheckExtensionManifest: true,
+
+\t// the alias that the project uses for 'chrome.i18n.getMessage'
+\tgetMessageAlias: 't',
 
 \tlocationsToLookForTokens: [
 \t\t{
