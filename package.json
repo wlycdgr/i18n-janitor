@@ -11,5 +11,6 @@
     "type" : "git",
     "url" : "https://github.com/wlycdgr/i18n-janitor.git"
   },
+  "keywords": ["i18n", "cli"],
   "license": "MPL-2.0"
 }
