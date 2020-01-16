@@ -277,7 +277,12 @@ function _defaultConfigFileString() {
 // 2. Once you're done, run i18n-janitor find from the project root
 module.exports = {
 \tdefaultLocaleTokensFilepath: '_locales/en/messages.json',
-\tcheckExtensionManifest: true, // if true, the tool will check manifest.json for the manifest-specific __MSG_[token]__ format i18n tokens 
+
+\t// if checkExtensionManifest is true,
+\t// the tool will check manifest.json for the manifest-specific __MSG_[token]__ format i18n tokens
+\t// https://developer.chrome.com/extensions/i18n
+\tcheckExtensionManifest: true,
+
 \tlocationsToLookForTokens: [
 \t\t{
 \t\t\tdir: 'app',
