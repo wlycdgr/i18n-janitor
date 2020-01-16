@@ -7,5 +7,9 @@
   "dependencies": {
     "jsonfile": "^5.0.0"
   },
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/wlycdgr/i18n-janitor.git"
+  },
   "license": "MPL-2.0"
 }
