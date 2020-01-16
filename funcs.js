@@ -134,7 +134,7 @@ function load_filepaths(locationsAndExtensions, filepaths = []) {
     return filepaths;
 }
 
-function find_unused_tokens(tokens, filepaths) {
+function find_unused_tokens(tokens, filepaths, checkExtensionManifest) {
     const tokenMap = new Map();
     tokens.forEach(token => tokenMap.set(token, token));
 
@@ -148,7 +148,25 @@ function find_unused_tokens(tokens, filepaths) {
         })
     });
 
-    return Array.from(tokenMap.keys());
+    return checkExtensionManifest ?
+        Array.from(_check_extension_manifest(tokenMap).keys()) :
+        Array.from(tokenMap.keys());
+}
+
+function _check_extension_manifest(tokenMap) {
+    if (!fs.existsSync('manifest.json')) { return tokenMap; }
+
+    const manifest = fs.readFileSync('manifest.json', 'utf8');
+
+    tokenMap.forEach(token => {
+        // the special format used for i18n tokens in the manifest only
+        // https://developer.chrome.com/extensions/i18n
+        if (manifest.includes(`__MSG_${token}__`)) {
+            tokenMap.delete(token);
+        }
+    });
+
+    return tokenMap;
 }
 
 function save_results(unusedTokens) {
@@ -259,6 +277,7 @@ function _defaultConfigFileString() {
 // 2. Once you're done, run i18n-janitor find from the project root
 module.exports = {
 \tdefaultLocaleTokensFilepath: '_locales/en/messages.json',
+\tcheckExtensionManifest: true, // if true, the tool will check manifest.json for the manifest-specific __MSG_[token]__ format i18n tokens 
 \tlocationsToLookForTokens: [
 \t\t{
 \t\t\tdir: 'app',
